@@ -17,7 +17,7 @@
         <form id="analyzeForm" method="POST">
             {% csrf_token %}
             <input type="hidden" id="input_type" name="input_type" value="url">
-            
+
             <!-- URL Input (Default) -->
             <div id="urlGroup" class="form-group">
                 <label for="urlInput">Paste News Link</label>
@@ -55,12 +55,27 @@
                         <div class="metric-value {{ result.metrics.score_class }}">{{ result.metrics.objectivity }}%</div>
                     </div>
                 </div>
-                
+
                 <div style="margin-top: 25px;">
                     <div class="metric-label">Text Analyzed</div>
                     <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
                         {{ result.text_preview }}
                     </p>
+                </div>
+
+                <!-- Summarize button — stores full text in data attribute -->
+                <div style="margin-top: 20px;">
+                    <button
+                        id="btn-summarize-analyzed"
+                        class="btn-summarize-analyze"
+                        data-fulltext="{{ result.full_text|escapejs }}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446"/>
+                            <path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Summarize with AI
+                    </button>
                 </div>
             </div>
         </div>
@@ -68,42 +83,306 @@
     {% endif %}
 </div>
 
-<script>
-    function switchTab(type) {
-        const urlBtn = document.querySelectorAll('.tab-btn')[0];
-        const textBtn = document.querySelectorAll('.tab-btn')[1];
-        const urlGroup = document.getElementById('urlGroup');
-        const textGroup = document.getElementById('textGroup');
-        const inputType = document.getElementById('input_type');
-        const urlInput = document.getElementById('urlInput');
-        const textInput = document.getElementById('textInput');
+<!-- ── AI Summary Floating Modal ──────────────────────────────────────────── -->
+<div id="summary-overlay" class="summary-overlay" role="dialog" aria-modal="true" aria-labelledby="summary-modal-heading">
+    <div class="summary-modal">
+        <div class="summary-modal-header">
+            <div class="summary-modal-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
+                AI Summary
+            </div>
+            <button id="summary-close-btn" class="summary-close-btn" aria-label="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
 
-        if (type === 'url') {
-            urlBtn.classList.add('active');
-            textBtn.classList.remove('active');
-            urlGroup.style.display = 'block';
-            textGroup.style.display = 'none';
-            inputType.value = 'url';
-            urlInput.setAttribute('name', 'content');
-            urlInput.setAttribute('required', '');
-            textInput.removeAttribute('name');
-            textInput.removeAttribute('required');
-        } else {
-            textBtn.classList.add('active');
-            urlBtn.classList.remove('active');
-            textGroup.style.display = 'block';
-            urlGroup.style.display = 'none';
-            inputType.value = 'text';
-            textInput.setAttribute('name', 'content');
-            textInput.setAttribute('required', '');
-            urlInput.removeAttribute('name');
-            urlInput.removeAttribute('required');
-        }
+        <p id="summary-modal-heading" class="summary-article-title">Analyzed Article</p>
+
+        <div id="summary-body" class="summary-body">
+            <div id="summary-loading" class="summary-loading" style="display:none;">
+                <div class="summary-spinner"></div>
+                <span>Generating AI summary…</span>
+            </div>
+            <p id="summary-text" class="summary-text" style="display:none;"></p>
+            <div id="summary-error" class="summary-error" style="display:none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span id="summary-error-text"></span>
+            </div>
+        </div>
+
+        <div class="summary-modal-footer">
+            <span class="summary-powered">Powered by Google Gemini 2.5 Flash</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes modalIn {
+        from { opacity: 0; transform: translateY(24px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
+    /* Summarize button on analyze page */
+    .btn-summarize-analyze {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.3rem;
+        border-radius: 10px;
+        border: 1px solid rgba(99, 102, 241, 0.4);
+        background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+        color: #a5b4fc;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-summarize-analyze:hover {
+        background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2));
+        border-color: rgba(99,102,241,0.7);
+        color: #c7d2fe;
+        transform: translateY(-1px);
+    }
+    .btn-summarize-analyze.loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* ── Modal styles (shared with homepage) ── */
+    .summary-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .summary-overlay.visible {
+        display: flex;
+        animation: overlayIn 0.2s ease;
+    }
+    .summary-modal {
+        background: linear-gradient(145deg, #1a1f2e, #0f1420);
+        border: 1px solid rgba(99,102,241,0.35);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 640px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 0 0 1px rgba(99,102,241,0.15), 0 24px 60px rgba(0,0,0,0.6);
+        animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .summary-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.2rem 1.4rem 0.8rem;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .summary-modal-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #a5b4fc;
+        background: rgba(99,102,241,0.15);
+        border: 1px solid rgba(99,102,241,0.3);
+        padding: 0.35rem 0.75rem;
+        border-radius: 99px;
+    }
+    .summary-close-btn {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .summary-close-btn:hover {
+        background: rgba(239,68,68,0.15);
+        border-color: rgba(239,68,68,0.3);
+        color: #f87171;
+        transform: rotate(90deg);
+    }
+    .summary-article-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #cbd5e1;
+        margin: 0;
+        padding: 0.9rem 1.4rem 0;
+        opacity: 0.85;
+    }
+    .summary-body {
+        padding: 1rem 1.4rem 1.2rem;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .summary-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.9rem;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    .summary-spinner {
+        position: relative;
+        width: 40px;
+        height: 40px;
+    }
+    .summary-spinner::before, .summary-spinner::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 3px solid transparent;
+    }
+    .summary-spinner::before {
+        border-top-color: #818cf8;
+        animation: spin 0.8s linear infinite;
+    }
+    .summary-spinner::after {
+        border-top-color: rgba(129,140,248,0.3);
+        animation: spin 1.4s linear infinite reverse;
+    }
+    .summary-text {
+        font-size: 0.97rem;
+        line-height: 1.75;
+        color: #e2e8f0;
+        margin: 0;
+        text-align: left;
+        width: 100%;
+    }
+    .summary-error {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        color: #fca5a5;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        width: 100%;
+    }
+    .summary-error svg { flex-shrink: 0; margin-top: 2px; stroke: #f87171; }
+    .summary-modal-footer {
+        border-top: 1px solid rgba(255,255,255,0.06);
+        padding: 0.7rem 1.4rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .summary-powered { font-size: 0.72rem; color: #475569; letter-spacing: 0.03em; }
+</style>
+
+<script>
+    const overlay     = document.getElementById('summary-overlay');
+    const closeBtn    = document.getElementById('summary-close-btn');
+    const loadingEl   = document.getElementById('summary-loading');
+    const textEl      = document.getElementById('summary-text');
+    const errorEl     = document.getElementById('summary-error');
+    const errorTextEl = document.getElementById('summary-error-text');
+
+    function openModal() {
+        loadingEl.style.display  = 'flex';
+        textEl.style.display     = 'none';
+        errorEl.style.display    = 'none';
+        overlay.classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }
+    function showSummary(text) {
+        loadingEl.style.display = 'none';
+        textEl.style.display    = 'block';
+        textEl.textContent      = text;
+    }
+    function showError(msg) {
+        loadingEl.style.display = 'none';
+        errorEl.style.display   = 'flex';
+        errorTextEl.textContent = msg;
+    }
+    function closeModal() {
+        overlay.classList.remove('visible');
+        document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+    // Summarize button on analyze page
+    const summarizeBtn = document.getElementById('btn-summarize-analyzed');
+    if (summarizeBtn) {
+        summarizeBtn.addEventListener('click', function() {
+            const fullText = this.dataset.fulltext;
+            openModal();
+            this.classList.add('loading');
+
+            fetch('/api/summarize-text/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: fullText }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.summary) { showSummary(data.summary); }
+                else { showError(data.error || 'An unexpected error occurred.'); }
+            })
+            .catch(() => showError('Network error — please check your connection and try again.'))
+            .finally(() => this.classList.remove('loading'));
+        });
+    }
+
+    // Analyze form loading state
     document.getElementById('analyzeForm').addEventListener('submit', function() {
         document.getElementById('btnText').innerText = 'Analyzing...';
         document.getElementById('loadingSpinner').style.display = 'inline-block';
     });
+
+    function switchTab(type) {
+        const urlBtn   = document.querySelectorAll('.tab-btn')[0];
+        const textBtn  = document.querySelectorAll('.tab-btn')[1];
+        const urlGroup = document.getElementById('urlGroup');
+        const textGroup = document.getElementById('textGroup');
+        const inputType = document.getElementById('input_type');
+        const urlInput  = document.getElementById('urlInput');
+        const textInput = document.getElementById('textInput');
+
+        if (type === 'url') {
+            urlBtn.classList.add('active');   textBtn.classList.remove('active');
+            urlGroup.style.display = 'block'; textGroup.style.display = 'none';
+            inputType.value = 'url';
+            urlInput.setAttribute('name', 'content');   urlInput.setAttribute('required', '');
+            textInput.removeAttribute('name');           textInput.removeAttribute('required');
+        } else {
+            textBtn.classList.add('active');   urlBtn.classList.remove('active');
+            textGroup.style.display = 'block'; urlGroup.style.display = 'none';
+            inputType.value = 'text';
+            textInput.setAttribute('name', 'content');   textInput.setAttribute('required', '');
+            urlInput.removeAttribute('name');             urlInput.removeAttribute('required');
+        }
+    }
 </script>
 {% endblock %}

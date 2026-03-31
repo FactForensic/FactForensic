@@ -6,7 +6,7 @@
         <div class="logo-icon"></div>
         <h1>FactForensic</h1>
     </div>
-    <p class="subtitle">Real-time Global & Regional Intelligence Dashboard</p>
+    <p class="subtitle">Real-time Global &amp; Regional Intelligence Dashboard</p>
 </header>
 
 <main class="dashboard-container">
@@ -63,11 +63,13 @@
                         </svg>
                         Full News
                     </a>
-                    <button class="btn-summarize">
+                    <button class="btn-summarize btn-ai-summarize"
+                            data-article-id="{{ item.id }}"
+                            data-article-title="{{ item.title|escapejs }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="m21 21-6-6m6 6v-4.8m0 4.8h-4.8M3 16.2V21m0 0h4.8M3 21l6-6M21 7.8V3m0 0h-4.8M21 3l-6 6M3 7.8V3m0 0h4.8M3 3l6 6" />
+                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446"/>
+                            <path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z"/>
                         </svg>
                         Summarize
                     </button>
@@ -134,11 +136,13 @@
                         </svg>
                         Full News
                     </a>
-                    <button class="btn-summarize">
+                    <button class="btn-summarize btn-ai-summarize"
+                            data-article-id="{{ item.id }}"
+                            data-article-title="{{ item.title|escapejs }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="m21 21-6-6m6 6v-4.8m0 4.8h-4.8M3 16.2V21m0 0h4.8M3 21l6-6M21 7.8V3m0 0h-4.8M21 3l-6 6M3 7.8V3m0 0h4.8M3 3l6 6" />
+                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446"/>
+                            <path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z"/>
                         </svg>
                         Summarize
                     </button>
@@ -153,32 +157,332 @@
     </section>
 </main>
 
-<script>
-    // Example summarize button animation interaction
-    document.querySelectorAll('.btn-summarize').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const originalText = this.innerHTML;
-            this.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Processing...';
-            this.style.pointerEvents = 'none';
+<!-- ── AI Summary Floating Modal ──────────────────────────────────────────── -->
+<div id="summary-overlay" class="summary-overlay" role="dialog" aria-modal="true" aria-labelledby="summary-modal-title">
+    <div class="summary-modal" id="summary-modal">
+        <!-- Header -->
+        <div class="summary-modal-header">
+            <div class="summary-modal-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
+                    <path d="M12 6v6l4 2"/>
+                </svg>
+                AI Summary
+            </div>
+            <button id="summary-close-btn" class="summary-close-btn" aria-label="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
 
-            setTimeout(() => {
-                this.innerHTML = '✅ Summarized!';
-                this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        <!-- Article title -->
+        <p id="summary-modal-title" class="summary-article-title"></p>
 
-                setTimeout(() => {
-                    this.innerHTML = originalText;
-                    this.style.background = '';
-                    this.style.pointerEvents = 'auto';
-                }, 2000);
-            }, 1500);
-        });
-    });
-</script>
+        <!-- Body: loading / result / error -->
+        <div id="summary-body" class="summary-body">
+            <!-- Loading state -->
+            <div id="summary-loading" class="summary-loading" style="display:none;">
+                <div class="summary-spinner"></div>
+                <span>Generating AI summary…</span>
+            </div>
+            <!-- Result -->
+            <p id="summary-text" class="summary-text" style="display:none;"></p>
+            <!-- Error -->
+            <div id="summary-error" class="summary-error" style="display:none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span id="summary-error-text"></span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="summary-modal-footer">
+            <span class="summary-powered">Powered by Google Gemini 2.5 Flash</span>
+        </div>
+    </div>
+</div>
+
 <style>
     @keyframes spin {
-        100% {
-            transform: rotate(360deg);
-        }
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes overlayIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+    @keyframes modalIn {
+        from { opacity: 0; transform: translateY(24px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+    @keyframes pulse-ring {
+        0%   { transform: scale(0.8); opacity: 1; }
+        100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    /* ── Overlay ── */
+    .summary-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .summary-overlay.visible {
+        display: flex;
+        animation: overlayIn 0.2s ease;
+    }
+
+    /* ── Modal card ── */
+    .summary-modal {
+        background: linear-gradient(145deg, #1a1f2e, #0f1420);
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 640px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow:
+            0 0 0 1px rgba(99,102,241,0.15),
+            0 24px 60px rgba(0, 0, 0, 0.6),
+            0 0 80px rgba(99, 102, 241, 0.08);
+        animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ── Header ── */
+    .summary-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.2rem 1.4rem 0.8rem;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .summary-modal-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #a5b4fc;
+        background: rgba(99,102,241,0.15);
+        border: 1px solid rgba(99,102,241,0.3);
+        padding: 0.35rem 0.75rem;
+        border-radius: 99px;
+    }
+    .summary-close-btn {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .summary-close-btn:hover {
+        background: rgba(239,68,68,0.15);
+        border-color: rgba(239,68,68,0.3);
+        color: #f87171;
+        transform: rotate(90deg);
+    }
+
+    /* ── Article title ── */
+    .summary-article-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #cbd5e1;
+        line-height: 1.5;
+        margin: 0;
+        padding: 0.9rem 1.4rem 0;
+        opacity: 0.85;
+    }
+
+    /* ── Body ── */
+    .summary-body {
+        padding: 1rem 1.4rem 1.2rem;
+        min-height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Loading */
+    .summary-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.9rem;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+    .summary-spinner {
+        position: relative;
+        width: 40px;
+        height: 40px;
+    }
+    .summary-spinner::before,
+    .summary-spinner::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 3px solid transparent;
+    }
+    .summary-spinner::before {
+        border-top-color: #818cf8;
+        animation: spin 0.8s linear infinite;
+    }
+    .summary-spinner::after {
+        border-top-color: rgba(129,140,248,0.3);
+        animation: spin 1.4s linear infinite reverse;
+    }
+
+    /* Summary text */
+    .summary-text {
+        font-size: 0.97rem;
+        line-height: 1.75;
+        color: #e2e8f0;
+        margin: 0;
+        text-align: left;
+        width: 100%;
+    }
+
+    /* Error */
+    .summary-error {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        color: #fca5a5;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        width: 100%;
+    }
+    .summary-error svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+        stroke: #f87171;
+    }
+
+    /* ── Footer ── */
+    .summary-modal-footer {
+        border-top: 1px solid rgba(255,255,255,0.06);
+        padding: 0.7rem 1.4rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .summary-powered {
+        font-size: 0.72rem;
+        color: #475569;
+        letter-spacing: 0.03em;
+    }
+
+    /* ── Button loading state ── */
+    .btn-ai-summarize.loading {
+        opacity: 0.7;
+        pointer-events: none;
     }
 </style>
+
+<script>
+    const overlay     = document.getElementById('summary-overlay');
+    const closeBtn    = document.getElementById('summary-close-btn');
+    const modalTitle  = document.getElementById('summary-modal-title');
+    const loadingEl   = document.getElementById('summary-loading');
+    const textEl      = document.getElementById('summary-text');
+    const errorEl     = document.getElementById('summary-error');
+    const errorTextEl = document.getElementById('summary-error-text');
+
+    function openModal(title) {
+        modalTitle.textContent = title;
+        loadingEl.style.display  = 'flex';
+        textEl.style.display     = 'none';
+        errorEl.style.display    = 'none';
+        overlay.classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function showSummary(text) {
+        loadingEl.style.display = 'none';
+        textEl.style.display    = 'block';
+        textEl.textContent      = text;
+    }
+
+    function showError(msg) {
+        loadingEl.style.display = 'none';
+        errorEl.style.display   = 'flex';
+        errorTextEl.textContent = msg;
+    }
+
+    function closeModal() {
+        overlay.classList.remove('visible');
+        document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeModal();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    document.querySelectorAll('.btn-ai-summarize').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const articleId    = this.dataset.articleId;
+            const articleTitle = this.dataset.articleTitle;
+
+            openModal(articleTitle);
+            btn.classList.add('loading');
+
+            fetch('/api/summarize/' + articleId + '/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data.summary) {
+                    showSummary(data.summary);
+                } else {
+                    showError(data.error || 'An unexpected error occurred.');
+                }
+            })
+            .catch(function (err) {
+                showError('Network error — please check your connection and try again.');
+            })
+            .finally(function () {
+                btn.classList.remove('loading');
+            });
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            document.cookie.split(';').forEach(function (cookie) {
+                const c = cookie.trim();
+                if (c.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(c.slice(name.length + 1));
+                }
+            });
+        }
+        return cookieValue;
+    }
+</script>
 {% endblock %}
