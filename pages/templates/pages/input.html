@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="analyze-wrapper">
+    <div class="analyze-header">
+        <h1>Check Yourself</h1>
+        <p class="subtitle">Analyze any news article or text for bias and objectivity</p>
+    </div>
+
+    <div class="tab-container">
+        <button class="tab-btn active" onclick="switchTab('url')">Article Link</button>
+        <button class="tab-btn" onclick="switchTab('text')">Raw Text</button>
+    </div>
+
+    <div class="input-area">
+        <form id="analyzeForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" id="input_type" name="input_type" value="url">
+            
+            <!-- URL Input (Default) -->
+            <div id="urlGroup" class="form-group">
+                <label for="urlInput">Paste News Link</label>
+                <input type="url" id="urlInput" name="content" class="styled-input" placeholder="https://www.reuters.com/world/article-example" required>
+            </div>
+
+            <!-- Text Input (Hidden by default) -->
+            <div id="textGroup" class="form-group" style="display: none;">
+                <label for="textInput">Paste Article Text</label>
+                <textarea id="textInput" name="content_text" class="styled-textarea" placeholder="Paste the full article text here..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-analyze-large">
+                <span id="btnText">Analyze Article</span>
+                <span id="loadingSpinner" style="display: none; animation: spin 1s linear infinite;">⏳</span>
+            </button>
+        </form>
+    </div>
+
+    {% if result %}
+    <div class="result-section" style="display: block;">
+        <div class="result-card">
+            <div class="result-header">
+                <span class="pill source">Analysis Result</span>
+                <span class="text-secondary" style="font-size: 0.8rem;">Real-time Model Inference</span>
+            </div>
+            <div class="result-body">
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-label">Bias Indicator</div>
+                        <div class="metric-value">{{ result.metrics.bias }}</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Objectivity Score</div>
+                        <div class="metric-value {{ result.metrics.score_class }}">{{ result.metrics.objectivity }}%</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 25px;">
+                    <div class="metric-label">Text Analyzed</div>
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
+                        {{ result.text_preview }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function switchTab(type) {
+        const urlBtn = document.querySelectorAll('.tab-btn')[0];
+        const textBtn = document.querySelectorAll('.tab-btn')[1];
+        const urlGroup = document.getElementById('urlGroup');
+        const textGroup = document.getElementById('textGroup');
+        const inputType = document.getElementById('input_type');
+        const urlInput = document.getElementById('urlInput');
+        const textInput = document.getElementById('textInput');
+
+        if (type === 'url') {
+            urlBtn.classList.add('active');
+            textBtn.classList.remove('active');
+            urlGroup.style.display = 'block';
+            textGroup.style.display = 'none';
+            inputType.value = 'url';
+            urlInput.setAttribute('name', 'content');
+            urlInput.setAttribute('required', '');
+            textInput.removeAttribute('name');
+            textInput.removeAttribute('required');
+        } else {
+            textBtn.classList.add('active');
+            urlBtn.classList.remove('active');
+            textGroup.style.display = 'block';
+            urlGroup.style.display = 'none';
+            inputType.value = 'text';
+            textInput.setAttribute('name', 'content');
+            textInput.setAttribute('required', '');
+            urlInput.removeAttribute('name');
+            urlInput.removeAttribute('required');
+        }
+    }
+
+    document.getElementById('analyzeForm').addEventListener('submit', function() {
+        document.getElementById('btnText').innerText = 'Analyzing...';
+        document.getElementById('loadingSpinner').style.display = 'inline-block';
+    });
+</script>
+{% endblock %}

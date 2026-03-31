@@ -1,0 +1,184 @@
+{%extends "base.html" %}
+{% load static %}
+{% block content %}
+<header>
+    <div class="logo-container">
+        <div class="logo-icon"></div>
+        <h1>FactForensic</h1>
+    </div>
+    <p class="subtitle">Real-time Global & Regional Intelligence Dashboard</p>
+</header>
+
+<main class="dashboard-container">
+    <!-- International Column -->
+    <section class="column">
+        <h2 class="col-header">
+            <span class="emoji">🌍</span>
+            International News
+        </h2>
+
+        <div class="news-list">
+            {% for item in world_news %}
+            <article class="news-card">
+                <h3 class="card-title">{{ item.title }}</h3>
+
+                <div class="meta-strip">
+                    <span class="pill source">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
+                            <path d="M18 14h-8" />
+                            <path d="M15 18h-5" />
+                            <path d="M10 6h8v4h-8V6Z" />
+                        </svg>
+                        {{ item.source_name }}
+                    </span>
+                    <span class="pill bias">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                        </svg>
+                        {{ item.random_bias }}
+                    </span>
+                    <span class="pill {{ item.score_class }}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="12" r="6" />
+                            <circle cx="12" cy="12" r="2" />
+                        </svg>
+                        Score: {{ item.obj_score }}/100
+                    </span>
+                </div>
+
+                <div class="card-footer">
+                    <a href="{{ item.url }}" target="_blank" class="btn-summarize btn-full-news">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                        Full News
+                    </a>
+                    <button class="btn-summarize">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="m21 21-6-6m6 6v-4.8m0 4.8h-4.8M3 16.2V21m0 0h4.8M3 21l6-6M21 7.8V3m0 0h-4.8M21 3l-6 6M3 7.8V3m0 0h4.8M3 3l6 6" />
+                        </svg>
+                        Summarize
+                    </button>
+                </div>
+            </article>
+            {% empty %}
+            <div class="empty-state">
+                No international news articles are currently available in the database.
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Bangladesh Column -->
+    <section class="column">
+        <h2 class="col-header">
+            <img src="https://flagcdn.com/w40/bd.png" width="30" alt="BD Flag" class="flag-icon">
+            Bangladesh News
+        </h2>
+
+        <div class="news-list">
+            {% for item in bd_news %}
+            <article class="news-card">
+                <h3 class="card-title">{{ item.title }}</h3>
+
+                <div class="meta-strip">
+                    <span class="pill source">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
+                            <path d="M18 14h-8" />
+                            <path d="M15 18h-5" />
+                            <path d="M10 6h8v4h-8V6Z" />
+                        </svg>
+                        {{ item.source_name }}
+                    </span>
+                    <span class="pill bias">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+                        </svg>
+                        {{ item.random_bias }}
+                    </span>
+                    <span class="pill {{ item.score_class }}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="12" r="6" />
+                            <circle cx="12" cy="12" r="2" />
+                        </svg>
+                        Score: {{ item.obj_score }}/100
+                    </span>
+                </div>
+
+                <div class="card-footer">
+                    <a href="{{ item.url }}" target="_blank" class="btn-summarize btn-full-news">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                        </svg>
+                        Full News
+                    </a>
+                    <button class="btn-summarize">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="m21 21-6-6m6 6v-4.8m0 4.8h-4.8M3 16.2V21m0 0h4.8M3 21l6-6M21 7.8V3m0 0h-4.8M21 3l-6 6M3 7.8V3m0 0h4.8M3 3l6 6" />
+                        </svg>
+                        Summarize
+                    </button>
+                </div>
+            </article>
+            {% empty %}
+            <div class="empty-state">
+                No Bangladesh news articles are currently available in the database.
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+<script>
+    // Example summarize button animation interaction
+    document.querySelectorAll('.btn-summarize').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Processing...';
+            this.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                this.innerHTML = '✅ Summarized!';
+                this.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.style.background = '';
+                    this.style.pointerEvents = 'auto';
+                }, 2000);
+            }, 1500);
+        });
+    });
+</script>
+<style>
+    @keyframes spin {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+{% endblock %}
