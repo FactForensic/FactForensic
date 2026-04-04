@@ -5,8 +5,122 @@ from django.core.management import call_command
 from django.conf import settings
 import threading
 import random
+import json
+import time
+import datetime
 
 from .models import GeopoliticalNews
+
+# ── Breaking News Cache ────────────────────────────────────────────────────────
+_breaking_news_cache = {
+    "data": None,
+    "fetched_at": 0,  # epoch seconds
+}
+
+def _is_peak_hour_bd():
+    """Return True during Bangladesh peak reading hours (BST = UTC+6)."""
+    bst_now = datetime.datetime.utcnow() + datetime.timedelta(hours=6)
+    h, m = bst_now.hour, bst_now.minute
+    # Morning 7:00–9:00, Lunch 13:00–14:00, Evening 20:00–23:00
+    return (7 <= h < 9) or (h == 13) or (20 <= h < 23)
+
+def _cache_ttl_seconds():
+    return 30 * 60 if _is_peak_hour_bd() else 60 * 60  # 30 min peak / 60 min off-peak
+
+
+def breaking_news_api(request):
+    """
+    Returns top 3 BD + top 3 international breaking news with 2-3 line summaries
+    fetched from Gemini. Uses smart caching: 30 min during BD peak hours, 60 min otherwise.
+    """
+    global _breaking_news_cache
+
+    now = time.time()
+    if (
+        _breaking_news_cache["data"] is not None
+        and (now - _breaking_news_cache["fetched_at"]) < _cache_ttl_seconds()
+    ):
+        return JsonResponse(_breaking_news_cache["data"])
+
+    api_key = getattr(settings, "GEMINI_API_KEY", "")
+    if not api_key:
+        return JsonResponse({"error": "Gemini API key not configured."}, status=500)
+
+    try:
+        from google import genai
+
+        client = genai.Client(api_key=api_key)
+
+        prompt = """You are a real-time news intelligence assistant. Your task is to provide the TOP 3 most important and trending news stories RIGHT NOW for two categories.
+
+Return ONLY valid JSON with this exact structure (no markdown, no extra text):
+{
+  "bd": [
+    {
+      "title": "Full news headline here",
+      "summary": "2-3 sentence summary of the news. What happened, who is involved, and why it matters.",
+      "source": "Source name (e.g., Prothom Alo, Daily Star, Dhaka Tribune)",
+      "category": "Politics / Economy / Social / Crime / Sports"
+    }
+  ],
+  "international": [
+    {
+      "title": "Full news headline here",
+      "summary": "2-3 sentence summary of the news. What happened, who is involved, and why it matters.",
+      "source": "Source name (e.g., BBC, Reuters, Al Jazeera, CNN)",
+      "category": "Politics / Conflict / Economy / Climate / Tech"
+    }
+  ],
+  "fetched_at_bst": "HH:MM BST"
+}
+
+Rules:
+- bd array: exactly 3 items — top 3 Bangladesh news right now
+- international array: exactly 3 items — top 3 world news right now
+- Summaries must be 2-3 sentences, neutral, factual
+- Titles must be realistic, specific headlines (not generic)
+- fetched_at_bst: current Bangladesh Standard Time (UTC+6) as HH:MM
+- Return ONLY the JSON object, nothing else
+
+STRICT RULES:
+- Only return real and verifiable news
+- Never make up or hallucinate any headline or fact
+- Tone must be completely neutral, no opinion
+- Focus only on geopolitical, economic, military, or humanitarian events
+- Prioritize events involving: war, elections, sanctions, diplomacy, natural disasters"""
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+        raw = response.text.strip()
+
+        # Strip markdown code fences if present
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        raw = raw.strip()
+
+        data = json.loads(raw)
+
+        # Add cache metadata
+        data["is_peak_hour"] = _is_peak_hour_bd()
+        data["refresh_in_minutes"] = 30 if _is_peak_hour_bd() else 60
+
+        _breaking_news_cache["data"] = data
+        _breaking_news_cache["fetched_at"] = now
+
+        return JsonResponse(data)
+
+    except Exception as e:
+        # If cache has stale data, return it with a warning
+        if _breaking_news_cache["data"]:
+            stale = dict(_breaking_news_cache["data"])
+            stale["stale"] = True
+            stale["error_hint"] = str(e)
+            return JsonResponse(stale)
+        return JsonResponse({"error": f"Failed to fetch breaking news: {str(e)}"}, status=500)
 
 
 def home_view(request):

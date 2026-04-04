@@ -9,8 +9,8 @@
     <p class="subtitle">Real-time Global &amp; Regional Intelligence Dashboard</p>
 </header>
 
-<!-- ── Breaking News Section ─────────────────────────────── -->
-<section class="breaking-section">
+<!-- ── Breaking News Section (Gemini-Powered Carousel) ────────────────── -->
+<section class="breaking-section" id="breaking-section">
 
     <!-- Section Header Banner -->
     <div class="breaking-banner">
@@ -19,529 +19,688 @@
             <span class="live-text">LIVE</span>
         </div>
         <h2 class="breaking-title">Breaking News</h2>
-        <p class="breaking-subtitle">Most recent critical updates from around the globe</p>
-        <div class="breaking-timestamp" id="breaking-clock"></div>
+
+        <div class="breaking-meta-right">
+            <span class="breaking-refresh-label" id="breaking-refresh-label">Refreshing…</span>
+            <div class="breaking-timestamp" id="breaking-clock"></div>
+        </div>
     </div>
 
-    <!-- Two hero cards side by side -->
+    <!-- Grid: BD | International -->
     <div class="breaking-grid">
 
-        <!-- ── International Breaking Card ── -->
-        {% if breaking_world %}
-        <article class="breaking-card breaking-card--world"
-                 data-score="{{ breaking_world.obj_score }}"
-                 data-bias="{{ breaking_world.random_bias }}">
-            <!-- Top accent bar -->
-            <div class="bcard-accent-bar"></div>
-
-            <!-- Card inner -->
-            <div class="bcard-inner">
-
-                <!-- Region label -->
-                <div class="bcard-region-label">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                    International
-                </div>
-
-                <!-- Headline -->
-                <h3 class="bcard-headline">{{ breaking_world.title }}</h3>
-
-                <!-- Source + time row -->
-                <div class="bcard-meta-row">
-                    <span class="bcard-source">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-                        {{ breaking_world.source_name }}
-                    </span>
-                    <span class="bcard-time">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        {% if breaking_world.published_at %}{{ breaking_world.published_at|timesince }} ago{% else %}Just now{% endif %}
-                    </span>
-                </div>
-
-                <!-- Summary -->
-                <div class="bcard-summary">
-                    {{ breaking_world.summary|default:"No AI summary yet — click Summarize below to generate one instantly." }}
-                </div>
-
-                <!-- Score meters -->
-                <div class="bcard-meters">
-                    <!-- Objectivity arc meter -->
-                    <div class="meter-block">
-                        <svg class="arc-meter" viewBox="0 0 80 50">
-                            <path class="arc-track" d="M 10 45 A 30 30 0 0 1 70 45"/>
-                            <path class="arc-fill arc-fill--world" d="M 10 45 A 30 30 0 0 1 70 45"
-                                  style="--score: {{ breaking_world.obj_score }};"/>
-                        </svg>
-                        <div class="meter-label">
-                            <span class="meter-value">{{ breaking_world.obj_score }}</span>
-                            <span class="meter-name">Objectivity</span>
-                        </div>
-                    </div>
-
-                    <!-- Bias pill (large) -->
-                    <div class="meter-block">
-                        <div class="bias-meter-badge bias-{{ breaking_world.random_bias|lower|cut:' '|cut:'-' }}">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-                            {{ breaking_world.random_bias }}
-                        </div>
-                        <span class="meter-name">Bias Lean</span>
-                    </div>
-                </div>
-
-                <!-- Action buttons -->
-                <div class="bcard-actions">
-                    <a href="{{ breaking_world.url }}" target="_blank" class="bcard-btn bcard-btn--outline">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        Read Full Article
-                    </a>
-                    <button class="bcard-btn bcard-btn--ai btn-ai-summarize"
-                            data-article-id="{{ breaking_world.id }}"
-                            data-article-title="{{ breaking_world.title|escapejs }}">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446"/><path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z"/></svg>
-                        AI Summarize
-                    </button>
-                </div>
+        <!-- ── Bangladesh Column ── -->
+        <div class="bn-column bn-column--bd">
+            <div class="bn-col-header">
+                <img src="https://flagcdn.com/w40/bd.png" width="20" alt="BD" style="border-radius:3px;">
+                <span>Bangladesh</span>
+                <span class="bn-col-badge">Top 3</span>
             </div>
-        </article>
-        {% else %}
-        <div class="breaking-card empty-state" style="min-height:260px; display:flex; align-items:center; justify-content:center;">
-            No breaking international news currently.
-        </div>
-        {% endif %}
-
-        <!-- ── Bangladesh Breaking Card ── -->
-        {% if breaking_bd %}
-        <article class="breaking-card breaking-card--bd"
-                 data-score="{{ breaking_bd.obj_score }}"
-                 data-bias="{{ breaking_bd.random_bias }}">
-            <div class="bcard-accent-bar" style="background: linear-gradient(90deg, #22c55e, #059669);"></div>
-
-            <div class="bcard-inner">
-
-                <div class="bcard-region-label" style="color: #4ade80; border-color: rgba(74,222,128,0.25); background: rgba(74,222,128,0.08);">
-                    <img src="https://flagcdn.com/w40/bd.png" width="18" alt="BD" style="border-radius:2px; vertical-align:middle;">
-                    Bangladesh
+            <!-- Carousel viewport -->
+            <div class="bn-carousel-wrap" id="bd-carousel-wrap">
+                <div class="bn-loading" id="bd-loading">
+                    <div class="bn-spinner"></div>
+                    <span>Fetching…</span>
                 </div>
-
-                <h3 class="bcard-headline">{{ breaking_bd.title }}</h3>
-
-                <div class="bcard-meta-row">
-                    <span class="bcard-source">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-                        {{ breaking_bd.source_name }}
-                    </span>
-                    <span class="bcard-time">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        {% if breaking_bd.published_at %}{{ breaking_bd.published_at|timesince }} ago{% else %}Just now{% endif %}
-                    </span>
-                </div>
-
-                <div class="bcard-summary">
-                    {{ breaking_bd.summary|default:"No AI summary yet — click Summarize below to generate one instantly." }}
-                </div>
-
-                <div class="bcard-meters">
-                    <div class="meter-block">
-                        <svg class="arc-meter" viewBox="0 0 80 50">
-                            <path class="arc-track" d="M 10 45 A 30 30 0 0 1 70 45"/>
-                            <path class="arc-fill arc-fill--bd" d="M 10 45 A 30 30 0 0 1 70 45"
-                                  style="--score: {{ breaking_bd.obj_score }};"/>
-                        </svg>
-                        <div class="meter-label">
-                            <span class="meter-value">{{ breaking_bd.obj_score }}</span>
-                            <span class="meter-name">Objectivity</span>
-                        </div>
-                    </div>
-
-                    <div class="meter-block">
-                        <div class="bias-meter-badge bias-{{ breaking_bd.random_bias|lower|cut:' '|cut:'-' }}">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-                            {{ breaking_bd.random_bias }}
-                        </div>
-                        <span class="meter-name">Bias Lean</span>
-                    </div>
-                </div>
-
-                <div class="bcard-actions">
-                    <a href="{{ breaking_bd.url }}" target="_blank" class="bcard-btn bcard-btn--outline">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        Read Full Article
-                    </a>
-                    <button class="bcard-btn bcard-btn--ai btn-ai-summarize"
-                            data-article-id="{{ breaking_bd.id }}"
-                            data-article-title="{{ breaking_bd.title|escapejs }}">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446"/><path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z"/></svg>
-                        AI Summarize
-                    </button>
-                </div>
+                <div class="bn-slides" id="bd-slides"></div>
             </div>
-        </article>
-        {% else %}
-        <div class="breaking-card empty-state" style="min-height:260px; display:flex; align-items:center; justify-content:center;">
-            No breaking Bangladesh news currently.
+            <!-- Dot indicators & pause badge -->
+            <div class="bn-controls" id="bd-controls">
+                <div class="bn-dots" id="bd-dots"></div>
+                <span class="bn-pause-badge" id="bd-pause-badge" style="display:none;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16" />
+                        <rect x="14" y="4" width="4" height="16" />
+                    </svg>
+                    Paused
+                </span>
+            </div>
         </div>
-        {% endif %}
+
+        <!-- ── International Column ── -->
+        <div class="bn-column bn-column--world">
+            <div class="bn-col-header">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+                <span>International</span>
+                <span class="bn-col-badge bn-col-badge--world">Top 3</span>
+            </div>
+            <div class="bn-carousel-wrap" id="world-carousel-wrap">
+                <div class="bn-loading" id="world-loading">
+                    <div class="bn-spinner"></div>
+                    <span>Fetching from Gemini…</span>
+                </div>
+                <div class="bn-slides" id="world-slides"></div>
+            </div>
+            <div class="bn-controls" id="world-controls">
+                <div class="bn-dots" id="world-dots"></div>
+                <span class="bn-pause-badge" id="world-pause-badge" style="display:none;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16" />
+                        <rect x="14" y="4" width="4" height="16" />
+                    </svg>
+                    Paused
+                </span>
+            </div>
+        </div>
 
     </div><!-- /breaking-grid -->
 </section>
 
 <!-- Breaking News Styles -->
 <style>
-/* ── BREAKING SECTION WRAPPER ── */
-.breaking-section {
-    max-width: 1400px;
-    margin: 0 auto 3rem;
-    padding: 0;
-}
+    /* ── BREAKING SECTION WRAPPER ── */
+    .breaking-section {
+        max-width: 1400px;
+        margin: 0 auto 3rem;
+        padding: 0;
+    }
 
-/* ── BANNER HEADER ── */
-.breaking-banner {
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-    padding: 1rem 1.8rem;
-    margin-bottom: 1.5rem;
-    background: linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(220,38,38,0.05) 60%, transparent 100%);
-    border: 1px solid rgba(239,68,68,0.3);
-    border-radius: 16px;
-    position: relative;
-    overflow: hidden;
-}
-.breaking-banner::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at top left, rgba(239,68,68,0.08), transparent 70%);
-    pointer-events: none;
-}
+    /* ── BANNER HEADER ── */
+    .breaking-banner {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        padding: 1rem 1.8rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.05) 60%, transparent 100%);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+    }
 
-/* animated red line at top */
-.breaking-banner::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #ef4444, #f97316, #ef4444);
-    background-size: 200% 100%;
-    animation: gradientShift 3s ease infinite;
-}
-@keyframes gradientShift {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+    .breaking-banner::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at top left, rgba(239, 68, 68, 0.08), transparent 70%);
+        pointer-events: none;
+    }
 
-/* live pulsing dot */
-.breaking-live-indicator {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-}
-.live-dot {
-    width: 10px; height: 10px;
-    background: #ef4444;
-    border-radius: 50%;
-    position: relative;
-    flex-shrink: 0;
-}
-.live-dot::before {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: 50%;
-    border: 2px solid rgba(239,68,68,0.5);
-    animation: livePulse 1.4s ease-out infinite;
-}
-@keyframes livePulse {
-    0%   { transform: scale(0.8); opacity: 1; }
-    100% { transform: scale(1.8); opacity: 0; }
-}
-.live-text {
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    color: #ef4444;
-    background: rgba(239,68,68,0.15);
-    border: 1px solid rgba(239,68,68,0.35);
-    padding: 0.2rem 0.55rem;
-    border-radius: 99px;
-}
+    .breaking-banner::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #ef4444, #f97316, #ef4444);
+        background-size: 200% 100%;
+        animation: gradientShift 3s ease infinite;
+    }
 
-.breaking-title {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: #f8fafc;
-    letter-spacing: -0.02em;
-}
-.breaking-subtitle {
-    font-size: 0.85rem;
-    color: #64748b;
-    flex: 1;
-}
-.breaking-timestamp {
-    font-size: 0.8rem;
-    color: #475569;
-    font-variant-numeric: tabular-nums;
-    margin-left: auto;
-    flex-shrink: 0;
-}
+    @keyframes gradientShift {
+        0% {
+            background-position: 0% 50%;
+        }
 
-/* ── BREAKING GRID ── */
-.breaking-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-}
+        50% {
+            background-position: 100% 50%;
+        }
 
-/* ── HERO CARD ── */
-.breaking-card {
-    background: linear-gradient(160deg, #141e30 0%, #0f172a 100%);
-    border: 1px solid rgba(239,68,68,0.25);
-    border-radius: 20px;
-    overflow: hidden;
-    position: relative;
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1),
-                box-shadow 0.3s cubic-bezier(0.4,0,0.2,1),
-                border-color 0.3s;
-    display: flex;
-    flex-direction: column;
-}
-.breaking-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(239,68,68,0.1);
-    border-color: rgba(239,68,68,0.45);
-}
+        100% {
+            background-position: 0% 50%;
+        }
+    }
 
-/* top color bar */
-.bcard-accent-bar {
-    height: 4px;
-    background: linear-gradient(90deg, #ef4444, #f97316);
-    flex-shrink: 0;
-}
+    .breaking-live-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+    }
 
-.bcard-inner {
-    padding: 1.6rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.95rem;
-    flex: 1;
-}
+    .live-dot {
+        width: 10px;
+        height: 10px;
+        background: #ef4444;
+        border-radius: 50%;
+        position: relative;
+        flex-shrink: 0;
+    }
 
-/* region chip */
-.bcard-region-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: #f87171;
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.25);
-    padding: 0.3rem 0.7rem;
-    border-radius: 99px;
-    width: fit-content;
-}
+    .live-dot::before {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 2px solid rgba(239, 68, 68, 0.5);
+        animation: livePulse 1.4s ease-out infinite;
+    }
 
-/* headline */
-.bcard-headline {
-    font-size: 1.18rem;
-    font-weight: 700;
-    color: #f1f5f9;
-    line-height: 1.45;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
+    @keyframes livePulse {
+        0% {
+            transform: scale(0.8);
+            opacity: 1;
+        }
 
-/* meta row */
-.bcard-meta-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-.bcard-source, .bcard-time {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8rem;
-    color: #64748b;
-}
-.bcard-source { color: #94a3b8; }
+        100% {
+            transform: scale(1.8);
+            opacity: 0;
+        }
+    }
 
-/* summary */
-.bcard-summary {
-    font-size: 0.92rem;
-    line-height: 1.7;
-    color: #94a3b8;
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    flex: 1;
-}
+    .live-text {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        padding: 0.2rem 0.55rem;
+        border-radius: 99px;
+    }
 
-/* ── SCORE METERS ── */
-.bcard-meters {
-    display: flex;
-    align-items: flex-end;
-    gap: 2rem;
-    padding: 1rem 0 0;
-    border-top: 1px solid rgba(255,255,255,0.06);
-}
-.meter-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-}
+    .breaking-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #f8fafc;
+        letter-spacing: -0.02em;
+    }
 
-/* SVG arc */
-.arc-meter {
-    width: 80px;
-    height: 50px;
-    overflow: visible;
-}
-.arc-track {
-    fill: none;
-    stroke: rgba(255,255,255,0.07);
-    stroke-width: 6;
-    stroke-linecap: round;
-}
-.arc-fill {
-    fill: none;
-    stroke-width: 6;
-    stroke-linecap: round;
-    /* circumference of our half-circle arc ≈ 94.25 */
-    stroke-dasharray: 94.25;
-    /* dashoffset drives fill: 0 = full, 94 = empty */
-    stroke-dashoffset: calc(94.25 - (var(--score) / 100) * 94.25);
-    transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
-}
-.arc-fill--world { stroke: url(#worldGrad); }
-.arc-fill--bd    { stroke: url(#bdGrad); }
+    .breaking-subtitle {
+        font-size: 0.85rem;
+        color: #64748b;
+        flex: 1;
+    }
 
-.meter-label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1;
-}
-.meter-value {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #f8fafc;
-}
-.meter-name {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #475569;
-    margin-top: 0.15rem;
-}
+    .breaking-meta-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.2rem;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
 
-/* ── BIAS BADGE ── */
-.bias-meter-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.85rem;
-    font-weight: 700;
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    border: 1px solid;
-}
-.bias-left        { color: #60a5fa; background: rgba(96,165,250,0.12); border-color: rgba(96,165,250,0.3); }
-.bias-centerleft  { color: #818cf8; background: rgba(129,140,248,0.12); border-color: rgba(129,140,248,0.3); }
-.bias-center      { color: #94a3b8; background: rgba(148,163,184,0.1); border-color: rgba(148,163,184,0.2); }
-.bias-centerright { color: #fb923c; background: rgba(251,146,60,0.12); border-color: rgba(251,146,60,0.3); }
-.bias-right       { color: #f87171; background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.3); }
+    .breaking-refresh-label {
+        font-size: 0.72rem;
+        color: #475569;
+        white-space: nowrap;
+    }
 
-/* ── ACTION BUTTONS ── */
-.bcard-actions {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: auto;
-    padding-top: 0.8rem;
-    border-top: 1px solid rgba(255,255,255,0.05);
-}
-.bcard-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.6rem 1.1rem;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    flex: 1;
-    justify-content: center;
-}
-.bcard-btn--outline {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: #94a3b8;
-}
-.bcard-btn--outline:hover {
-    background: rgba(255,255,255,0.1);
-    color: #f1f5f9;
-    border-color: rgba(255,255,255,0.22);
-}
-.bcard-btn--ai {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(99,102,241,0.35);
-}
-.bcard-btn--ai:hover {
-    filter: brightness(1.12);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(99,102,241,0.5);
-}
+    .breaking-timestamp {
+        font-size: 0.8rem;
+        color: #475569;
+        font-variant-numeric: tabular-nums;
+    }
 
-/* Responsive */
-@media (max-width: 900px) {
-    .breaking-grid { grid-template-columns: 1fr; }
-    .breaking-banner { flex-wrap: wrap; gap: 0.75rem; }
-}
+    /* ── BREAKING GRID ── */
+    .breaking-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    /* ── COLUMN ── */
+    .bn-column {
+        background: linear-gradient(160deg, #141e30 0%, #0f172a 100%);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 320px;
+    }
+
+    .bn-column--bd {
+        border-color: rgba(74, 222, 128, 0.22);
+    }
+
+    .bn-column--world {
+        border-color: rgba(99, 102, 241, 0.25);
+    }
+
+    /* col header */
+    .bn-col-header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.85rem 1.4rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #cbd5e1;
+        letter-spacing: 0.03em;
+    }
+
+    .bn-column--bd .bn-col-header {
+        color: #4ade80;
+    }
+
+    .bn-column--world .bn-col-header {
+        color: #818cf8;
+    }
+
+    .bn-col-badge {
+        margin-left: auto;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #4ade80;
+        background: rgba(74, 222, 128, 0.12);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+        padding: 0.18rem 0.6rem;
+        border-radius: 99px;
+    }
+
+    .bn-col-badge--world {
+        color: #818cf8;
+        background: rgba(99, 102, 241, 0.12);
+        border-color: rgba(99, 102, 241, 0.25);
+    }
+
+    /* ── CAROUSEL WRAP ── */
+    .bn-carousel-wrap {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* ── LOADING STATE ── */
+    .bn-loading {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.85rem;
+        color: #64748b;
+        font-size: 0.88rem;
+    }
+
+    .bn-spinner {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.06);
+        border-top-color: #818cf8;
+        animation: bn-spin 0.9s linear infinite;
+    }
+
+    @keyframes bn-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ── SLIDES ── */
+    .bn-slides {
+        width: 100%;
+        display: flex;
+        transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+    }
+
+    /* single slide */
+    .bn-slide {
+        min-width: 100%;
+        padding: 1.4rem;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+
+    /* slide number badge */
+    .bn-slide-num {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 0.1rem;
+    }
+
+    .bn-column--bd .bn-slide-num {
+        color: #4ade80;
+    }
+
+    .bn-column--world .bn-slide-num {
+        color: #818cf8;
+    }
+
+    .bn-slide-cat {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #4ade80;
+        background: rgba(74, 222, 128, 0.1);
+        border: 1px solid rgba(74, 222, 128, 0.2);
+        padding: 0.15rem 0.55rem;
+        border-radius: 99px;
+        margin-left: auto;
+    }
+
+    .bn-column--world .bn-slide-cat {
+        color: #818cf8;
+        background: rgba(99, 102, 241, 0.1);
+        border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .bn-slide-headline {
+        font-size: 1.12rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        line-height: 1.48;
+        margin: 0;
+    }
+
+    .bn-slide-summary {
+        font-size: 0.90rem;
+        line-height: 1.72;
+        color: #94a3b8;
+        flex: 1;
+    }
+
+    .bn-slide-source {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.76rem;
+        color: #475569;
+        font-weight: 600;
+        padding-top: 0.6rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .bn-slide-source::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #4ade80;
+        flex-shrink: 0;
+    }
+
+    .bn-column--world .bn-slide-source::before {
+        background: #818cf8;
+    }
+
+    /* ── CONTROLS ── */
+    .bn-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.8rem;
+        padding: 0.6rem 1.2rem 0.8rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* dot indicators */
+    .bn-dots {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .bn-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+        border: none;
+        padding: 0;
+        transition: all 0.25s ease;
+    }
+
+    .bn-dot:hover {
+        background: rgba(255, 255, 255, 0.35);
+        transform: scale(1.15);
+    }
+
+    .bn-dot.active {
+        width: 22px;
+        border-radius: 99px;
+        background: #4ade80;
+    }
+
+    .bn-column--world .bn-dot.active {
+        background: #818cf8;
+    }
+
+    /* pause badge */
+    .bn-pause-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        padding: 0.2rem 0.6rem;
+        border-radius: 99px;
+    }
+
+    /* error state */
+    .bn-error {
+        padding: 2rem 1.4rem;
+        text-align: center;
+        color: #f87171;
+        font-size: 0.88rem;
+        line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .breaking-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .breaking-banner {
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+    }
 </style>
-
-<!-- SVG gradient defs (hidden, reusable by arc-fill) -->
-<svg width="0" height="0" style="position:absolute">
-    <defs>
-        <linearGradient id="worldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#38bdf8"/>
-            <stop offset="100%" stop-color="#818cf8"/>
-        </linearGradient>
-        <linearGradient id="bdGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#4ade80"/>
-            <stop offset="100%" stop-color="#22d3ee"/>
-        </linearGradient>
-    </defs>
-</svg>
 
 <!-- Live Clock Script -->
 <script>
-(function(){
-    const el = document.getElementById('breaking-clock');
-    function tick(){
-        const now = new Date();
-        el.textContent = now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-    }
-    tick();
-    setInterval(tick, 1000);
-})();
+    (function () {
+        const el = document.getElementById('breaking-clock');
+        function tick() {
+            const now = new Date();
+            el.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        tick();
+        setInterval(tick, 1000);
+    })();
 </script>
 
+<!-- ── Gemini Breaking News Carousel Engine ── -->
+<script>
+    (function () {
+        'use strict';
+
+        /* ── helpers ── */
+        function el(id) { return document.getElementById(id); }
+
+        /* ── carousel state ── */
+        function makeCarousel(cfg) {
+            // cfg: { slidesEl, dotsEl, pauseBadgeEl, wrapEl, loadingEl, accentClass }
+            let current = 0;
+            let paused = false;
+            let items = [];
+            let timer = null;
+
+            function goTo(idx) {
+                current = idx;
+                cfg.slidesEl.style.transform = `translateX(-${current * 100}%)`;
+                cfg.dotsEl.querySelectorAll('.bn-dot').forEach(function (d, i) {
+                    d.classList.toggle('active', i === current);
+                });
+            }
+
+            function next() {
+                if (!paused && items.length > 1) {
+                    goTo((current + 1) % items.length);
+                }
+            }
+
+            function startAuto() {
+                clearInterval(timer);
+                timer = setInterval(next, 6000);
+            }
+
+            function stopAuto() {
+                clearInterval(timer);
+            }
+
+            function setPaused(val) {
+                paused = val;
+                cfg.pauseBadgeEl.style.display = val ? 'inline-flex' : 'none';
+                if (val) { stopAuto(); } else { startAuto(); }
+            }
+
+            function render(newsArray) {
+                items = newsArray;
+                cfg.loadingEl.style.display = 'none';
+                cfg.slidesEl.innerHTML = '';
+                cfg.dotsEl.innerHTML = '';
+
+                newsArray.forEach(function (item, i) {
+                    // Slide
+                    const slide = document.createElement('div');
+                    slide.className = 'bn-slide';
+                    slide.innerHTML =
+                        '<div class="bn-slide-num">' +
+                        '<span>No. ' + (i + 1) + '</span>' +
+                        '<span class="bn-slide-cat">' + escapeHtml(item.category || '') + '</span>' +
+                        '</div>' +
+                        '<h3 class="bn-slide-headline">' + escapeHtml(item.title) + '</h3>' +
+                        '<p class="bn-slide-summary">' + escapeHtml(item.summary) + '</p>' +
+                        '<div class="bn-slide-source">' + escapeHtml(item.source || 'Unknown Source') + '</div>';
+
+                    // Pause/resume on click
+                    slide.addEventListener('click', function () {
+                        setPaused(!paused);
+                    });
+                    slide.style.cursor = 'pointer';
+                    slide.title = paused ? 'Click to resume' : 'Click to pause';
+
+                    cfg.slidesEl.appendChild(slide);
+
+                    // Dot
+                    const dot = document.createElement('button');
+                    dot.className = 'bn-dot' + (i === 0 ? ' active' : '');
+                    dot.setAttribute('aria-label', 'News ' + (i + 1));
+                    dot.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        goTo(i);
+                        setPaused(true);
+                    });
+                    cfg.dotsEl.appendChild(dot);
+                });
+
+                goTo(0);
+                startAuto();
+            }
+
+            function showError(msg) {
+                cfg.loadingEl.style.display = 'none';
+                cfg.slidesEl.innerHTML = '<div class="bn-error">⚠ ' + escapeHtml(msg) + '</div>';
+            }
+
+            return { render, showError };
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        /* ── Init carousels ── */
+        const bdCarousel = makeCarousel({
+            slidesEl: el('bd-slides'),
+            dotsEl: el('bd-dots'),
+            pauseBadgeEl: el('bd-pause-badge'),
+            loadingEl: el('bd-loading'),
+        });
+
+        const worldCarousel = makeCarousel({
+            slidesEl: el('world-slides'),
+            dotsEl: el('world-dots'),
+            pauseBadgeEl: el('world-pause-badge'),
+            loadingEl: el('world-loading'),
+        });
+
+        /* ── Fetch from API ── */
+        var refreshTimer = null;
+
+        function scheduleRefresh(minutes) {
+            clearTimeout(refreshTimer);
+            var ms = (minutes || 60) * 60 * 1000;
+            refreshTimer = setTimeout(fetchBreakingNews, ms);
+
+            // Update label
+            var label = document.getElementById('breaking-refresh-label');
+            if (label) {
+                label.textContent = 'Next refresh in ' + minutes + ' min';
+            }
+        }
+
+        function fetchBreakingNews() {
+            var label = document.getElementById('breaking-refresh-label');
+            if (label) label.textContent = 'Fetching latest news…';
+
+            fetch('/api/breaking-news/')
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.error) {
+                        bdCarousel.showError(data.error);
+                        worldCarousel.showError(data.error);
+                        return;
+                    }
+
+                    if (Array.isArray(data.bd) && data.bd.length) {
+                        bdCarousel.render(data.bd);
+                    } else {
+                        bdCarousel.showError('No Bangladesh news available right now.');
+                    }
+
+                    if (Array.isArray(data.international) && data.international.length) {
+                        worldCarousel.render(data.international);
+                    } else {
+                        worldCarousel.showError('No international news available right now.');
+                    }
+
+                    // Update banner timestamp
+                    if (data.fetched_at_bst) {
+                        var label2 = document.getElementById('breaking-refresh-label');
+                        if (label2) label2.textContent = 'Updated at ' + data.fetched_at_bst + (data.stale ? ' (cached)' : '');
+                    }
+
+                    scheduleRefresh(data.refresh_in_minutes || 60);
+                })
+                .catch(function (err) {
+                    bdCarousel.showError('Connection error. Retrying soon…');
+                    worldCarousel.showError('Connection error. Retrying soon…');
+                    scheduleRefresh(5); // retry faster on failure
+                });
+        }
+
+        // Kick off immediately
+        fetchBreakingNews();
+
+    })();
+</script>
 
 <!-- ══ SECTION DIVIDER ═══════════════════════════════════════════════════════ -->
 <div class="section-divider">
@@ -552,7 +711,9 @@
     <div class="divider-label">
         <span class="divider-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="2"/>
+                <path d="M4 11a9 9 0 0 1 9 9" />
+                <path d="M4 4a16 16 0 0 1 16 16" />
+                <circle cx="5" cy="19" r="2" />
             </svg>
         </span>
         <span class="divider-text">Latest Stories</span>
@@ -564,114 +725,141 @@
 </div>
 
 <style>
-/* ── SECTION DIVIDER ── */
-.section-divider {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    max-width: 1400px;
-    margin: 0 auto 2.5rem;
-    padding: 0 0.5rem;
-    position: relative;
-}
+    /* ── SECTION DIVIDER ── */
+    .section-divider {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        max-width: 1400px;
+        margin: 0 auto 2.5rem;
+        padding: 0 0.5rem;
+        position: relative;
+    }
 
-/* The fading horizontal lines */
-.divider-line {
-    flex: 1;
-    height: 1px;
-    position: relative;
-}
-.divider-line::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 99px;
-}
-.divider-line--left::before {
-    background: linear-gradient(to right,
-        transparent 0%,
-        rgba(99, 102, 241, 0.15) 30%,
-        rgba(99, 102, 241, 0.5) 100%);
-}
-.divider-line--right::before {
-    background: linear-gradient(to left,
-        transparent 0%,
-        rgba(99, 102, 241, 0.15) 30%,
-        rgba(99, 102, 241, 0.5) 100%);
-}
-/* Animated glow dot that slides along the line */
-.divider-line::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 120px;
-    height: 1px;
-    background: linear-gradient(to right, transparent, rgba(129,140,248,0.9), transparent);
-    transform: translateY(-50%);
-    animation: lineGlow 3.5s ease-in-out infinite;
-}
-.divider-line--left::after  { left: 0;  animation-direction: normal; }
-.divider-line--right::after { right: 0; animation-direction: reverse; }
+    /* The fading horizontal lines */
+    .divider-line {
+        flex: 1;
+        height: 1px;
+        position: relative;
+    }
 
-@keyframes lineGlow {
-    0%   { opacity: 0; transform: translateY(-50%) scaleX(0.3); }
-    40%  { opacity: 1; transform: translateY(-50%) scaleX(1); }
-    100% { opacity: 0; transform: translateY(-50%) scaleX(0.3); }
-}
+    .divider-line::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 99px;
+    }
 
-/* Centre label */
-.divider-label {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    flex-shrink: 0;
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    border-radius: 99px;
-    padding: 0.45rem 1.1rem 0.45rem 0.75rem;
-    box-shadow: 0 0 20px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.05);
-    position: relative;
-}
-/* subtle top shine */
-.divider-label::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 15%; right: 15%;
-    height: 1px;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
-    border-radius: 99px;
-}
+    .divider-line--left::before {
+        background: linear-gradient(to right,
+                transparent 0%,
+                rgba(99, 102, 241, 0.15) 30%,
+                rgba(99, 102, 241, 0.5) 100%);
+    }
 
-.divider-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: rgba(99,102,241,0.15);
-    color: #818cf8;
-    flex-shrink: 0;
-}
+    .divider-line--right::before {
+        background: linear-gradient(to left,
+                transparent 0%,
+                rgba(99, 102, 241, 0.15) 30%,
+                rgba(99, 102, 241, 0.5) 100%);
+    }
 
-.divider-text {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: #cbd5e1;
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-}
+    /* Animated glow dot that slides along the line */
+    .divider-line::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 120px;
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(129, 140, 248, 0.9), transparent);
+        transform: translateY(-50%);
+        animation: lineGlow 3.5s ease-in-out infinite;
+    }
 
-.divider-badge {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #818cf8;
-    background: rgba(99,102,241,0.15);
-    border: 1px solid rgba(99,102,241,0.25);
-    padding: 0.18rem 0.55rem;
-    border-radius: 99px;
-}
+    .divider-line--left::after {
+        left: 0;
+        animation-direction: normal;
+    }
+
+    .divider-line--right::after {
+        right: 0;
+        animation-direction: reverse;
+    }
+
+    @keyframes lineGlow {
+        0% {
+            opacity: 0;
+            transform: translateY(-50%) scaleX(0.3);
+        }
+
+        40% {
+            opacity: 1;
+            transform: translateY(-50%) scaleX(1);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(-50%) scaleX(0.3);
+        }
+    }
+
+    /* Centre label */
+    .divider-label {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 99px;
+        padding: 0.45rem 1.1rem 0.45rem 0.75rem;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        position: relative;
+    }
+
+    /* subtle top shine */
+    .divider-label::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 15%;
+        right: 15%;
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
+        border-radius: 99px;
+    }
+
+    .divider-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+        flex-shrink: 0;
+    }
+
+    .divider-text {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #cbd5e1;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+    }
+
+    .divider-badge {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #818cf8;
+        background: rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        padding: 0.18rem 0.55rem;
+        border-radius: 99px;
+    }
 </style>
 
 <main class="dashboard-container">
@@ -728,13 +916,12 @@
                         </svg>
                         Full News
                     </a>
-                    <button class="btn-summarize btn-ai-summarize"
-                            data-article-id="{{ item.id }}"
-                            data-article-title="{{ item.title|escapejs }}">
+                    <button class="btn-summarize btn-ai-summarize" data-article-id="{{ item.id }}"
+                        data-article-title="{{ item.title|escapejs }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446"/>
-                            <path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z"/>
+                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446" />
+                            <path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z" />
                         </svg>
                         Summarize
                     </button>
@@ -801,13 +988,12 @@
                         </svg>
                         Full News
                     </a>
-                    <button class="btn-summarize btn-ai-summarize"
-                            data-article-id="{{ item.id }}"
-                            data-article-title="{{ item.title|escapejs }}">
+                    <button class="btn-summarize btn-ai-summarize" data-article-id="{{ item.id }}"
+                        data-article-title="{{ item.title|escapejs }}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446"/>
-                            <path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z"/>
+                            <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 1 7.92 12.446" />
+                            <path d="m17 21-5-1-5 1V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2z" />
                         </svg>
                         Summarize
                     </button>
@@ -829,15 +1015,15 @@
         <div class="summary-modal-header">
             <div class="summary-modal-badge">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/>
-                    <path d="M12 6v6l4 2"/>
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z" />
+                    <path d="M12 6v6l4 2" />
                 </svg>
                 AI Summary
             </div>
             <button id="summary-close-btn" class="summary-close-btn" aria-label="Close">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
         </div>
@@ -857,9 +1043,9 @@
             <!-- Error -->
             <div id="summary-error" class="summary-error" style="display:none;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
                 <span id="summary-error-text"></span>
             </div>
@@ -874,19 +1060,43 @@
 
 <style>
     @keyframes spin {
-        100% { transform: rotate(360deg); }
+        100% {
+            transform: rotate(360deg);
+        }
     }
+
     @keyframes overlayIn {
-        from { opacity: 0; }
-        to   { opacity: 1; }
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
+
     @keyframes modalIn {
-        from { opacity: 0; transform: translateY(24px) scale(0.97); }
-        to   { opacity: 1; transform: translateY(0)   scale(1); }
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(0.97);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
+
     @keyframes pulse-ring {
-        0%   { transform: scale(0.8); opacity: 1; }
-        100% { transform: scale(1.8); opacity: 0; }
+        0% {
+            transform: scale(0.8);
+            opacity: 1;
+        }
+
+        100% {
+            transform: scale(1.8);
+            opacity: 0;
+        }
     }
 
     /* ── Overlay ── */
@@ -902,6 +1112,7 @@
         justify-content: center;
         padding: 1rem;
     }
+
     .summary-overlay.visible {
         display: flex;
         animation: overlayIn 0.2s ease;
@@ -917,7 +1128,7 @@
         max-height: 80vh;
         overflow-y: auto;
         box-shadow:
-            0 0 0 1px rgba(99,102,241,0.15),
+            0 0 0 1px rgba(99, 102, 241, 0.15),
             0 24px 60px rgba(0, 0, 0, 0.6),
             0 0 80px rgba(99, 102, 241, 0.08);
         animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -929,8 +1140,9 @@
         align-items: center;
         justify-content: space-between;
         padding: 1.2rem 1.4rem 0.8rem;
-        border-bottom: 1px solid rgba(255,255,255,0.07);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
+
     .summary-modal-badge {
         display: flex;
         align-items: center;
@@ -940,14 +1152,15 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: #a5b4fc;
-        background: rgba(99,102,241,0.15);
-        border: 1px solid rgba(99,102,241,0.3);
+        background: rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.3);
         padding: 0.35rem 0.75rem;
         border-radius: 99px;
     }
+
     .summary-close-btn {
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 50%;
         width: 36px;
         height: 36px;
@@ -958,9 +1171,10 @@
         color: #94a3b8;
         transition: background 0.2s, color 0.2s, transform 0.2s;
     }
+
     .summary-close-btn:hover {
-        background: rgba(239,68,68,0.15);
-        border-color: rgba(239,68,68,0.3);
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.3);
         color: #f87171;
         transform: rotate(90deg);
     }
@@ -994,11 +1208,13 @@
         color: #94a3b8;
         font-size: 0.9rem;
     }
+
     .summary-spinner {
         position: relative;
         width: 40px;
         height: 40px;
     }
+
     .summary-spinner::before,
     .summary-spinner::after {
         content: '';
@@ -1007,12 +1223,14 @@
         border-radius: 50%;
         border: 3px solid transparent;
     }
+
     .summary-spinner::before {
         border-top-color: #818cf8;
         animation: spin 0.8s linear infinite;
     }
+
     .summary-spinner::after {
-        border-top-color: rgba(129,140,248,0.3);
+        border-top-color: rgba(129, 140, 248, 0.3);
         animation: spin 1.4s linear infinite reverse;
     }
 
@@ -1036,6 +1254,7 @@
         line-height: 1.5;
         width: 100%;
     }
+
     .summary-error svg {
         flex-shrink: 0;
         margin-top: 2px;
@@ -1044,11 +1263,12 @@
 
     /* ── Footer ── */
     .summary-modal-footer {
-        border-top: 1px solid rgba(255,255,255,0.06);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
         padding: 0.7rem 1.4rem;
         display: flex;
         justify-content: flex-end;
     }
+
     .summary-powered {
         font-size: 0.72rem;
         color: #475569;
@@ -1063,32 +1283,32 @@
 </style>
 
 <script>
-    const overlay     = document.getElementById('summary-overlay');
-    const closeBtn    = document.getElementById('summary-close-btn');
-    const modalTitle  = document.getElementById('summary-modal-title');
-    const loadingEl   = document.getElementById('summary-loading');
-    const textEl      = document.getElementById('summary-text');
-    const errorEl     = document.getElementById('summary-error');
+    const overlay = document.getElementById('summary-overlay');
+    const closeBtn = document.getElementById('summary-close-btn');
+    const modalTitle = document.getElementById('summary-modal-title');
+    const loadingEl = document.getElementById('summary-loading');
+    const textEl = document.getElementById('summary-text');
+    const errorEl = document.getElementById('summary-error');
     const errorTextEl = document.getElementById('summary-error-text');
 
     function openModal(title) {
         modalTitle.textContent = title;
-        loadingEl.style.display  = 'flex';
-        textEl.style.display     = 'none';
-        errorEl.style.display    = 'none';
+        loadingEl.style.display = 'flex';
+        textEl.style.display = 'none';
+        errorEl.style.display = 'none';
         overlay.classList.add('visible');
         document.body.style.overflow = 'hidden';
     }
 
     function showSummary(text) {
         loadingEl.style.display = 'none';
-        textEl.style.display    = 'block';
-        textEl.textContent      = text;
+        textEl.style.display = 'block';
+        textEl.textContent = text;
     }
 
     function showError(msg) {
         loadingEl.style.display = 'none';
-        errorEl.style.display   = 'flex';
+        errorEl.style.display = 'flex';
         errorTextEl.textContent = msg;
     }
 
@@ -1107,7 +1327,7 @@
 
     document.querySelectorAll('.btn-ai-summarize').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            const articleId    = this.dataset.articleId;
+            const articleId = this.dataset.articleId;
             const articleTitle = this.dataset.articleTitle;
 
             openModal(articleTitle);
@@ -1120,20 +1340,20 @@
                     'Content-Type': 'application/json',
                 },
             })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                if (data.summary) {
-                    showSummary(data.summary);
-                } else {
-                    showError(data.error || 'An unexpected error occurred.');
-                }
-            })
-            .catch(function (err) {
-                showError('Network error — please check your connection and try again.');
-            })
-            .finally(function () {
-                btn.classList.remove('loading');
-            });
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.summary) {
+                        showSummary(data.summary);
+                    } else {
+                        showError(data.error || 'An unexpected error occurred.');
+                    }
+                })
+                .catch(function (err) {
+                    showError('Network error — please check your connection and try again.');
+                })
+                .finally(function () {
+                    btn.classList.remove('loading');
+                });
         });
     });
 
