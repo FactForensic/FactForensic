@@ -1,8 +1,8 @@
 import time
 import feedparser
 import requests
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone as dt_timezone
+from urllib.parse import urlparse
 from email.utils import parsedate_to_datetime
 
 from django.core.management.base import BaseCommand
@@ -26,6 +26,7 @@ HEADERS = {
 }
 
 BLOCKLIST = [
+    # Sports
     "football",
     "soccer",
     "cricket",
@@ -39,15 +40,37 @@ BLOCKLIST = [
     "ufc",
     "wrestling",
     "esports",
+    "bowling coach",
+    "spin bowling",
+    "batting",
+    "wicket",
+    "innings",
+    "knicks",
+    "bulls",
+    "lakers",
+    "rapinoe",
+    "mcmahon",
+    "broadcaster",
+    "slam dunk",
+    "playoffs",
+    "world cup qualif",
+    # Crypto / Finance fluff
     "bitcoin",
     "crypto",
     "blockchain",
     "nft",
+    # Entertainment / Lifestyle
     "recipe",
     "movie",
     "celebrity",
     "fashion",
     "entertainment",
+    "horoscope",
+    "lifestyle",
+    "travel",
+    "food",
+    "health tips",
+    # Sports streaming
     "how to watch",
     "free stream",
     "watch live",
@@ -58,12 +81,47 @@ BLOCKLIST = [
     "goal",
     "tournament",
     "league",
-    "horoscope",
+    # Weather
     "weather",
-    "lifestyle",
-    "travel",
-    "food",
-    "health tips",
+    "thundershower",
+    "heatwave",
+    "heat wave",
+    "temperature forecast",
+    "rainfall forecast",
+    "met office",
+    # Education / Academia (not political)
+    "accreditation",
+    "university ranking",
+    "campus",
+    "music education",
+    # Misc fluff
+    "podcast",
+    "live blog",
+    "live updates",
+    "thread",
+    "explainer",
+    "deals",
+    "shopping",
+    "review",
+    "fine paper",
+]
+
+# URL path segments that indicate non-political content
+URL_PATH_BLOCKLIST = [
+    "/sport/",
+    "/sports/",
+    "/entertainment/",
+    "/lifestyle/",
+    "/features/panorama/",
+    "/features/beyond-",
+    "/weather/",
+    "/food/",
+    "/travel/",
+    "/health/",
+    "/shopping/",
+    "/style/",
+    "/education/",
+    "/power-energy/",
 ]
 
 WORLD_RELEVANCE_KEYWORDS = [
@@ -107,6 +165,15 @@ WORLD_RELEVANCE_KEYWORDS = [
     "gaza",
     "taiwan",
     "north korea",
+    "policy",
+    "law",
+    "human rights",
+    "budget",
+    "court",
+    "justice",
+    "senate",
+    "congress",
+    "supreme court",
 ]
 
 BD_RELEVANCE_KEYWORDS = [
@@ -163,14 +230,18 @@ BD_RELEVANCE_KEYWORDS = [
     "curfew",
     "caretaker",
     "advisor",
+    "policy",
+    "law",
+    "human rights",
+    "justice",
+    "supreme court",
+    "high court",
+    "bgb",
+    "rab",
+    "police",
 ]
 
 WORLD_FEEDS = [
-    (
-        "Reuters",
-        "Center",
-        "https://news.google.com/rss/search?q=site:reuters.com+world&hl=en-US&gl=US&ceid=US:en",
-    ),
     (
         "BBC News",
         "Center",
@@ -179,7 +250,7 @@ WORLD_FEEDS = [
     (
         "Al Jazeera",
         "Left",
-        "https://news.google.com/rss/search?q=site:aljazeera.com&hl=en-US&gl=US&ceid=US:en",
+        "https://news.google.com/rss/search?q=site:aljazeera.com+world&hl=en-US&gl=US&ceid=US:en",
     ),
     (
         "The Guardian",
@@ -205,6 +276,11 @@ WORLD_FEEDS = [
         "World Politics",
         "Center",
         "https://news.google.com/rss/search?q=world+politics+war+conflict&hl=en-US&gl=US&ceid=US:en",
+    ),
+    (
+        "Google Top World",
+        "Mixed",
+        "https://news.google.com/news/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en",
     ),
 ]
 
@@ -306,6 +382,9 @@ class Command(BaseCommand):
     help = "Fetch top 10 world + top 10 BD news from last 12 hours, ranked by relevance"
 
     def handle(self, *args, **options):
+        import os
+
+        os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
         self.stdout.write(f"\n[START] {timezone.now().strftime('%Y-%m-%d %H:%M')}")
 
         # Initialize browser state for both automated and single-use scrapes
@@ -336,7 +415,7 @@ class Command(BaseCommand):
     # Main pipeline
 
     def process_feeds(self, feeds, category, limit, bd_filter, relevance_keywords):
-        cutoff = datetime.now(dt_timezone.utc) - timedelta(hours=12)
+        cutoff = datetime.now(dt_timezone.utc) - timedelta(hours=24)
         self.stdout.write(f"  Cutoff: {cutoff.strftime('%b %d %H:%M')} UTC\n")
 
         candidates = []
@@ -352,7 +431,7 @@ class Command(BaseCommand):
                 continue
 
             if not entries:
-                self.stdout.write(f"  |- 0 entries")
+                self.stdout.write("  |- 0 entries")
                 continue
 
             feed_hits = 0
@@ -380,6 +459,13 @@ class Command(BaseCommand):
                     continue
 
                 score = self.relevance_score(title, summary, relevance_keywords)
+
+                # STRICT FILTERING: Must contain relevance keywords
+                # BD needs >=2 to filter fluff but not starve the pipeline
+                min_score = 2 if bd_filter else 1
+                if score < min_score:
+                    continue
+
                 candidates.append(
                     {
                         "title": title,
@@ -424,6 +510,19 @@ class Command(BaseCommand):
             )
 
             real_url = self.decode_google_news_url(item["url"])
+
+            # STRICT FILTERING: Reject generic category/thread pages
+            # And reject URLs whose path indicates non-political content
+            if self._is_category_page(real_url):
+                self.stdout.write("  |- [SKIP] Category/index page, not an article\n")
+                continue
+
+            if any(seg in real_url.lower() for seg in URL_PATH_BLOCKLIST):
+                self.stdout.write(
+                    "  |- [SKIP] URL path indicates non-political content\n"
+                )
+                continue
+
             body = self.scrape(real_url)
 
             if not body:
@@ -432,6 +531,12 @@ class Command(BaseCommand):
 
             self.stdout.write(f"  |- [OK] Scraped ({len(body):,} chars)")
 
+            # Request objectivity score from Groq
+            from pages.utils import get_groq_objectivity_score
+
+            obj_score = get_groq_objectivity_score(body)
+            self.stdout.write(f"  |- [GROQ] Objectivity score: {obj_score}")
+
             GeopoliticalNews.objects.create(
                 url=item["url"][:800],
                 title=item["title"][:500],
@@ -439,6 +544,7 @@ class Command(BaseCommand):
                 content=body,
                 category=category,
                 published_at=item["published_at"],
+                objectivity_score=obj_score,
             )
             saved += 1
             self.stdout.write(f"  |- [SAVE] Saved: {item['title'][:50]}\n")
@@ -482,84 +588,196 @@ class Command(BaseCommand):
 
         return url
 
+    # Category page detector
+
+    def _is_category_page(self, url):
+        """
+        Detect if a URL is a category/index page rather than an article.
+        Checks the last path segment for article-like patterns (slugs, IDs).
+        """
+        parsed = urlparse(url)
+        path = parsed.path.rstrip("/")
+        segments = [s for s in path.split("/") if s]
+
+        # Root or single-segment paths are always category pages (e.g., /news)
+        if len(segments) <= 1:
+            return True
+
+        last = segments[-1]
+
+        # Explicit non-article page types
+        NON_ARTICLE_PATHS = [
+            "/where/",
+            "/live/",
+            "/video/",
+            "/audio/",
+            "/podcast/",
+            "/live-blog/",
+        ]
+        if any(p in url.lower() for p in NON_ARTICLE_PATHS):
+            return True
+
+        # Article slugs almost always contain hyphens (trump-files-emergency-motion)
+        # OR are long alphanumeric IDs (e9956423cd796c1dbdbb42e)
+        if "-" in last or len(last) > 8:
+            return False  # Looks like an article
+
+        # 2 segments where last is a short word without hyphens = category
+        # e.g., /world/middleeast or /news/asia
+        if len(segments) == 2:
+            return True
+
+        # 3+ segments with a non-slug last segment = likely a category index
+        return True
+
     # Scraper
 
     def scrape(self, url):
         """
-        Fetch and extract full article text using trafilatura.
+        Fetch and extract full article text.
+        Strategy: trafilatura first, then newspaper3k fallback.
         Returns clean text or None if content is insufficient.
         """
+        MIN_TEXT_LEN = 150
+
+        # ── Attempt 1: trafilatura ──
         try:
             downloaded = trafilatura.fetch_url(url)
-            if not downloaded:
-                return None
-
-            text = trafilatura.extract(
-                downloaded,
-                include_comments=False,
-                include_tables=False,
-                no_fallback=False,
-                favor_recall=True,
-            )
-
-            if text and len(text.strip()) > 200:
-                return text.strip()
-            return None
-
+            if downloaded:
+                text = trafilatura.extract(
+                    downloaded,
+                    include_comments=False,
+                    include_tables=False,
+                    no_fallback=False,
+                    favor_recall=True,
+                )
+                if text and len(text.strip()) > MIN_TEXT_LEN:
+                    return text.strip()
         except Exception as e:
             self.stderr.write(f"  trafilatura failed: {url[:60]} — {e}")
-            return None
+
+        # ── Attempt 2: Playwright fallback (for 401s and Cloudflare) ──
+        try:
+            # Ensure the browser instance is launched
+            self._launch_playwright()
+            text = self.scrape_with_playwright(url)
+            if text and len(text.strip()) > MIN_TEXT_LEN:
+                return text.strip()
+        except Exception as e:
+            self.stderr.write(f"  Playwright fallback failed: {url[:60]} — {e}")
+
+        # ── Attempt 3: newspaper3k fallback ──
+        try:
+            config = Config()
+            config.browser_user_agent = HEADERS["User-Agent"]
+            config.request_timeout = 15
+            article = Article(url, config=config)
+            article.download()
+            article.parse()
+            text = article.text.strip()
+            if len(text) > MIN_TEXT_LEN:
+                return text
+        except Exception as e:
+            self.stderr.write(f"  newspaper3k failed: {url[:60]} — {e}")
+
+        return None
 
     # Ranking
 
     def rank_by_importance(self, candidates):
+        import re
+
         now = datetime.now(dt_timezone.utc)
 
-        title_groups = defaultdict(list)
+        # 0. Deduplicate by decoded URL to prevent the same article appearing multiple times
+        seen_urls = set()
+        deduped = []
         for c in candidates:
-            fingerprint = " ".join(c["title"].lower().split()[:5])
-            title_groups[fingerprint].append(c)
+            url_key = c["url"].split("?")[0].rstrip("/").lower()
+            if url_key not in seen_urls:
+                seen_urls.add(url_key)
+                deduped.append(c)
+        candidates = deduped
 
+        # 1. Generate clean token sets for Jaccard Similarity clustering
         for c in candidates:
-            fingerprint = " ".join(c["title"].lower().split()[:5])
-            source_count = len(title_groups[fingerprint])
+            # clean title: lowercase, drop punctuation, drop small words
+            words = re.findall(r"\b[a-z]{4,}\b", c["title"].lower())
+            c["tokens"] = set(words)
 
-            age_hours = (now - c["published_at"]).total_seconds() / 3600
-            if age_hours <= 2:
-                recency = 5
-            elif age_hours <= 4:
-                recency = 2
-            else:
-                recency = 0
+        # 2. Cluster candidates using generic Jaccard Similarity (>= 30% overlap)
+        clusters = []
+        candidate_to_cluster = {}  # map candidate index -> cluster index
+        for idx, c in enumerate(candidates):
+            assigned = False
+            for ci, cluster in enumerate(clusters):
+                # Check overlap with cluster center (first item in cluster)
+                center_tokens = cluster[0]["tokens"]
+                union_len = len(c["tokens"].union(center_tokens))
+                if union_len == 0:
+                    continue
+                intersection_len = len(c["tokens"].intersection(center_tokens))
+                jaccard = intersection_len / union_len
 
-            c["final_score"] = (source_count * 5) + (c["score"] * 2) + recency
-            c["source_count"] = source_count
+                # If 30% similar, consider it the same story being reported across sites
+                if jaccard >= 0.30:
+                    cluster.append(c)
+                    candidate_to_cluster[idx] = ci
+                    assigned = True
+                    break
 
+            if not assigned:
+                candidate_to_cluster[idx] = len(clusters)
+                clusters.append([c])
+
+        # 3. Assess Source Count and Final Scores
+        for cluster in clusters:
+            # Count unique sources in this cluster (not duplicate entries)
+            unique_sources = set(c["source_name"] for c in cluster)
+            source_count = len(unique_sources)
+            for c in cluster:
+                c["source_count"] = source_count
+
+                age_hours = (now - c["published_at"]).total_seconds() / 3600
+                if age_hours <= 2:
+                    recency = 5
+                elif age_hours <= 4:
+                    recency = 2
+                else:
+                    recency = 0
+
+                c["final_score"] = (source_count * 5) + (c["score"] * 2) + recency
+
+        # 4. Sort candidates
         candidates.sort(key=lambda x: x["final_score"], reverse=True)
 
-        seen = set()
+        # 5. Deduplicate so we only fetch 1 representative per cluster
+        # Pick the highest-scored article from each cluster
+        seen_cluster_ids = set()
         unique = []
-        for c in candidates:
-            fingerprint = " ".join(c["title"].lower().split()[:5])
-            if fingerprint not in seen:
-                seen.add(fingerprint)
+        for idx, c in enumerate(candidates):
+            # Look up which cluster this candidate belongs to
+            orig_idx = deduped.index(c) if c in deduped else idx
+            cluster_id = candidate_to_cluster.get(orig_idx)
+            if cluster_id is not None and cluster_id not in seen_cluster_ids:
+                seen_cluster_ids.add(cluster_id)
                 unique.append(c)
 
         return unique
 
     def scrape_full_text(self, url):
         """
-        Public helper to scrape a single URL. 
+        Public helper to scrape a single URL.
         Handles URL resolution and the browser lifecycle.
         """
         # 1. Resolve URL (follow redirects)
         real_url = self.decode_google_news_url(url)
-        
+
         # 2. Scrape logic
         body = None
-        
+
         # Check if browser state is initialized
-        if not hasattr(self, '_browser'):
+        if not hasattr(self, "_browser"):
             self._browser = None
             self._playwright_ctx = None
             self._p = None
@@ -567,11 +785,11 @@ class Command(BaseCommand):
         browser_was_open = self._browser is not None
         if not browser_was_open:
             self._launch_playwright()
-            
+
         try:
             # Try Playwright first
             body = self.scrape_with_playwright(real_url)
-            
+
             # If Playwright fails, try newspaper3k
             if not body:
                 body = self.scrape_with_newspaper(real_url)
@@ -579,7 +797,7 @@ class Command(BaseCommand):
             # Only close it if we were the ones who opened it
             if not browser_was_open:
                 self._close_playwright()
-                
+
         return body or "Content unavailable (could not scrape this site)."
 
     # ── Playwright lifecycle ──────────────────────────────────────────────────
@@ -642,13 +860,19 @@ class Command(BaseCommand):
             return None
 
     def relevance_score(self, title, summary, keywords):
+        import re
+
         title_lower = title.lower()
         summary_lower = summary.lower()
         score = 0
         for kw in keywords:
-            if kw in title_lower:
+            # Need to escape kw to avoid regex errors, and ensure \b doesn't break on hyphens
+            kw_escaped = re.escape(kw)
+            pattern = rf"(?:\b|\s){kw_escaped}(?:\b|\s)"
+
+            if re.search(pattern, title_lower):
                 score += 2
-            elif kw in summary_lower:
+            elif re.search(pattern, summary_lower):
                 score += 1
         return score
 

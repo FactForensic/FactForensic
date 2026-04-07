@@ -643,17 +643,34 @@
 
         /* ── Fetch from API ── */
         var refreshTimer = null;
+        var countdownTimer = null;
+        var nextRefreshTime = 0;
+
+        function updateCountdownLabel() {
+            var label = document.getElementById('breaking-refresh-label');
+            if (!label || !nextRefreshTime) return;
+
+            var diff = nextRefreshTime - Date.now();
+            if (diff <= 0) {
+                label.textContent = 'Refreshing now...';
+                return;
+            }
+
+            var min = Math.ceil(diff / 60000);
+            label.textContent = 'Next refresh in ' + min + ' min';
+        }
 
         function scheduleRefresh(minutes) {
             clearTimeout(refreshTimer);
-            var ms = (minutes || 60) * 60 * 1000;
-            refreshTimer = setTimeout(fetchBreakingNews, ms);
+            clearInterval(countdownTimer);
 
-            // Update label
-            var label = document.getElementById('breaking-refresh-label');
-            if (label) {
-                label.textContent = 'Next refresh in ' + minutes + ' min';
-            }
+            var ms = (minutes || 60) * 60 * 1000;
+            nextRefreshTime = Date.now() + ms;
+
+            updateCountdownLabel();
+
+            refreshTimer = setTimeout(fetchBreakingNews, ms);
+            countdownTimer = setInterval(updateCountdownLabel, 30000); // refresh UI every 30s
         }
 
         function fetchBreakingNews() {

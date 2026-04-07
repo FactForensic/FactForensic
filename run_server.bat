@@ -1,1 +1,1 @@
-python manage.py runserver
+call venv\Scripts\activate.bat && python manage.py runserver

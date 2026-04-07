@@ -11,18 +11,20 @@ import datetime
 
 from .models import GeopoliticalNews
 
-# ── Breaking News Cache ────────────────────────────────────────────────────────
+# -- Breaking News Cache -------------------------------------------------------
 _breaking_news_cache = {
     "data": None,
     "fetched_at": 0,  # epoch seconds
 }
 
+
 def _is_peak_hour_bd():
     """Return True during Bangladesh peak reading hours (BST = UTC+6)."""
     bst_now = datetime.datetime.utcnow() + datetime.timedelta(hours=6)
-    h, m = bst_now.hour, bst_now.minute
-    # Morning 7:00–9:00, Lunch 13:00–14:00, Evening 20:00–23:00
+    h = bst_now.hour
+    # Morning 7:00-9:00, Lunch 13:00-14:00, Evening 20:00-23:00
     return (7 <= h < 9) or (h == 13) or (20 <= h < 23)
+
 
 def _cache_ttl_seconds():
     return 30 * 60 if _is_peak_hour_bd() else 60 * 60  # 30 min peak / 60 min off-peak
@@ -75,8 +77,8 @@ Return ONLY valid JSON with this exact structure (no markdown, no extra text):
 }
 
 Rules:
-- bd array: exactly 3 items — top 3 Bangladesh news right now
-- international array: exactly 3 items — top 3 world news right now
+- bd array: exactly 3 items -- top 3 Bangladesh news right now
+- international array: exactly 3 items -- top 3 world news right now
 - Summaries must be 2-3 sentences, neutral, factual
 - Titles must be realistic, specific headlines (not generic)
 - fetched_at_bst: current Bangladesh Standard Time (UTC+6) as HH:MM
@@ -93,7 +95,7 @@ STRICT RULES:
             model="gemini-2.5-flash",
             contents=prompt,
         )
-        raw = response.text.strip()
+        raw = response.text.strip() if response.text is not None else ""
 
         # Strip markdown code fences if present
         if raw.startswith("```"):
@@ -120,26 +122,47 @@ STRICT RULES:
             stale["stale"] = True
             stale["error_hint"] = str(e)
             return JsonResponse(stale)
-        return JsonResponse({"error": f"Failed to fetch breaking news: {str(e)}"}, status=500)
+        return JsonResponse(
+            {"error": f"Failed to fetch breaking news: {str(e)}"}, status=500
+        )
 
 
 def home_view(request):
-    world_qs = GeopoliticalNews.objects.filter(category="World").order_by("-published_at")[:11]
-    bd_qs = GeopoliticalNews.objects.filter(category="BD").order_by("-published_at")[:11]
+    world_qs = GeopoliticalNews.objects.filter(category="World").order_by(
+        "-published_at"
+    )[:11]
+    bd_qs = GeopoliticalNews.objects.filter(category="BD").order_by("-published_at")[
+        :11
+    ]
 
-    # Inject randomized metrics since models are not added yet
     world_news = []
     for news in world_qs:
-        news.random_bias = random.choice(["Left", "Center-Left", "Center", "Center-Right", "Right"])
-        news.obj_score = random.randint(55, 98)
-        news.score_class = "score-high" if news.obj_score >= 80 else ("score-med" if news.obj_score >= 70 else "score-low")
+        news.random_bias = getattr(news, "bias_score", None) or random.choice(
+            ["Left", "Center-Left", "Center", "Center-Right", "Right"]
+        )
+        news.obj_score = getattr(news, "objectivity_score", None)
+        if news.obj_score is None:
+            news.obj_score = random.randint(55, 98)
+        news.score_class = (
+            "score-high"
+            if news.obj_score >= 80
+            else ("score-med" if news.obj_score >= 70 else "score-low")
+        )
         world_news.append(news)
 
     bd_news = []
     for news in bd_qs:
-        news.random_bias = random.choice(["Left", "Center-Left", "Center", "Center-Right", "Right"])
-        news.obj_score = random.randint(55, 98)
-        news.score_class = "score-high" if news.obj_score >= 80 else ("score-med" if news.obj_score >= 70 else "score-low")
+        news.random_bias = getattr(news, "bias_score", None) or random.choice(
+            ["Left", "Center-Left", "Center", "Center-Right", "Right"]
+        )
+        news.obj_score = getattr(news, "objectivity_score", None)
+        if news.obj_score is None:
+            news.obj_score = random.randint(55, 98)
+        news.score_class = (
+            "score-high"
+            if news.obj_score >= 80
+            else ("score-med" if news.obj_score >= 70 else "score-low")
+        )
         bd_news.append(news)
 
     breaking_world = world_news.pop(0) if world_news else None
@@ -160,13 +183,23 @@ def get_model_predictions(text):
     This is where you will load your .joblib or .h5 models from Colab.
     For now, it returns mock data that matches the dashboard UI.
     """
-    mock_bias = random.choice(["Left", "Center", "Right", "Center-Left", "Center-Right"])
-    mock_obj = random.randint(60, 99)
+    mock_bias = random.choice(
+        ["Left", "Center", "Right", "Center-Left", "Center-Right"]
+    )
+
+    from pages.utils import get_groq_objectivity_score
+
+    groq_obj = get_groq_objectivity_score(text)
+
+    # Fallback if API fails or no key
+    obj_score = groq_obj if groq_obj is not None else random.randint(60, 99)
 
     return {
         "bias": mock_bias,
-        "objectivity": mock_obj,
-        "score_class": "score-high" if mock_obj >= 80 else ("score-med" if mock_obj >= 70 else "score-low"),
+        "objectivity": obj_score,
+        "score_class": "score-high"
+        if obj_score >= 80
+        else ("score-med" if obj_score >= 70 else "score-low"),
     }
 
 
@@ -180,6 +213,7 @@ def analyze_view(request):
 
         if input_type == "url" and content.startswith("http"):
             from pages.management.commands.fetch import Command
+
             fetcher = Command()
             scraped_text = fetcher.scrape_full_text(content)
             if scraped_text:
@@ -215,7 +249,6 @@ def summarize_view(request, article_id):
     if request.method != "POST":
         return JsonResponse({"error": "POST only"}, status=405)
 
-    # ── 1. Fetch the article ──────────────────────────────────────────────────
     try:
         article = get_object_or_404(GeopoliticalNews, id=article_id)
     except Exception:
@@ -223,17 +256,19 @@ def summarize_view(request, article_id):
 
     content = (article.content or "").strip()
     if not content:
-        return JsonResponse({"error": "This article has no stored content to summarize."}, status=400)
+        return JsonResponse(
+            {"error": "This article has no stored content to summarize."}, status=400
+        )
 
-    # ── 2. Check API key ──────────────────────────────────────────────────────
     api_key = getattr(settings, "GEMINI_API_KEY", "")
     if not api_key:
         return JsonResponse(
-            {"error": "Gemini API key not configured. Add GEMINI_API_KEY to settings.py."},
+            {
+                "error": "Gemini API key not configured. Add GEMINI_API_KEY to settings.py."
+            },
             status=500,
         )
 
-    # ── 3. Call Gemini ────────────────────────────────────────────────────────
     try:
         from google import genai
 
@@ -243,15 +278,15 @@ def summarize_view(request, article_id):
             "You are a professional news analyst. "
             "Read the following news article and write a clear, neutral, 4-sentence summary. "
             "Focus on: what happened, who is involved, where/when, and the key impact or significance. "
-            "Do NOT use bullet points — write it as a single flowing paragraph.\n\n"
-            f"ARTICLE:\n{content[:8000]}"  # trim to avoid token limits
+            "Do NOT use bullet points -- write it as a single flowing paragraph.\n\n"
+            f"ARTICLE:\n{content[:8000]}"
         )
 
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
         )
-        summary_text = response.text.strip()
+        summary_text = response.text.strip() if response.text is not None else ""
 
         return JsonResponse({"summary": summary_text})
 
@@ -263,12 +298,11 @@ def summarize_view(request, article_id):
 def summarize_text_view(request):
     """
     On-demand AI summarization for the Check Yourself page.
-    Accepts raw article text directly in the POST body — no DB lookup needed.
+    Accepts raw article text directly in the POST body -- no DB lookup needed.
     """
     if request.method != "POST":
         return JsonResponse({"error": "POST only"}, status=405)
 
-    import json
     try:
         body = json.loads(request.body)
         content = body.get("text", "").strip()
@@ -281,7 +315,9 @@ def summarize_text_view(request):
     api_key = getattr(settings, "GEMINI_API_KEY", "")
     if not api_key:
         return JsonResponse(
-            {"error": "Gemini API key not configured. Add GEMINI_API_KEY to settings.py."},
+            {
+                "error": "Gemini API key not configured. Add GEMINI_API_KEY to settings.py."
+            },
             status=500,
         )
 
@@ -294,7 +330,7 @@ def summarize_text_view(request):
             "You are a professional news analyst. "
             "Read the following news article and write a clear, neutral, 4-sentence summary. "
             "Focus on: what happened, who is involved, where/when, and the key impact or significance. "
-            "Do NOT use bullet points — write it as a single flowing paragraph.\n\n"
+            "Do NOT use bullet points -- write it as a single flowing paragraph.\n\n"
             f"ARTICLE:\n{content[:8000]}"
         )
 
@@ -302,11 +338,9 @@ def summarize_text_view(request):
             model="gemini-2.5-flash",
             contents=prompt,
         )
-        summary_text = response.text.strip()
+        summary_text = response.text.strip() if response.text is not None else ""
 
         return JsonResponse({"summary": summary_text})
 
     except Exception as e:
         return JsonResponse({"error": f"AI summarization failed: {str(e)}"}, status=500)
-
-
