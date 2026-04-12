@@ -10,6 +10,7 @@ Political bias leaning and objectivity score detection from news article system
  for users.
 
 ## Webpages:
+<img width="1875" height="883" alt="Screenshot 2026-04-13 001406" src="https://github.com/user-attachments/assets/b03f4919-15a3-44ef-aa2b-cb8fc1c9b9d8" />
 
 
 ## Builds with:
