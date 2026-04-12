@@ -16,7 +16,9 @@ Home Page:
 
 Check news by yourself using links or raw news:
 <img width="1851" height="749" alt="image" src="https://github.com/user-attachments/assets/78585990-37d2-4baf-abbd-a7bdf74e8102" />
-<img width="1871" height="926" alt="Screenshot 2026-04-12 235424" src="https://github.com/user-attachments/assets/97a521a0-bc64-496c-ba64-b4c43786a3f7" />
+<img width="1849" height="853" alt="Screenshot 2026-04-13 005521" src="https://github.com/user-attachments/assets/ebdd1d79-942c-480b-b06f-5d5d8b8dfedc" />
+<img width="1796" height="254" alt="Screenshot 2026-04-13 005536" src="https://github.com/user-attachments/assets/245947f7-2515-45e5-8ee0-e2df9647ea9f" />
+
 
 
 ## Builds with:
