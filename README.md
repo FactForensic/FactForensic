@@ -11,9 +11,11 @@ Political bias leaning and objectivity score detection from news article system
 
 ## Webpages:
 Home Page:
-<img width="1875" height="883" alt="Screenshot 2026-04-13 001406" src="https://github.com/user-attachments/assets/b03f4919-15a3-44ef-aa2b-cb8fc1c9b9d8" />
-<img width="1651" height="853" alt="Screenshot 2026-04-13 001423" src="https://github.com/user-attachments/assets/83273c7f-184a-44cf-bcec-605fed0a8893" />
+<img width="1852" height="808" alt="image" src="https://github.com/user-attachments/assets/8f6dc631-a4ab-48db-86c1-16cac48d4aee" />
+<img width="1781" height="764" alt="image" src="https://github.com/user-attachments/assets/49a5edfd-f248-4fb3-afcd-f1b7cc625fb2" />
+
 Check news by yourself using links or raw news:
+<img width="1851" height="749" alt="image" src="https://github.com/user-attachments/assets/78585990-37d2-4baf-abbd-a7bdf74e8102" />
 <img width="1871" height="926" alt="Screenshot 2026-04-12 235424" src="https://github.com/user-attachments/assets/97a521a0-bc64-496c-ba64-b4c43786a3f7" />
 
 
