@@ -392,23 +392,26 @@ class Command(BaseCommand):
         self._playwright_ctx = None
         self._p = None
 
-        self.stdout.write("\n=== WORLD NEWS ===")
-        self.process_feeds(
-            feeds=WORLD_FEEDS,
-            category="World",
-            limit=10,
-            bd_filter=False,
-            relevance_keywords=WORLD_RELEVANCE_KEYWORDS,
-        )
+        try:
+            self.stdout.write("\n=== WORLD NEWS ===")
+            self.process_feeds(
+                feeds=WORLD_FEEDS,
+                category="World",
+                limit=10,
+                bd_filter=False,
+                relevance_keywords=WORLD_RELEVANCE_KEYWORDS,
+            )
 
-        self.stdout.write("\n=== BANGLADESH NEWS ===")
-        self.process_feeds(
-            feeds=BD_FEEDS,
-            category="BD",
-            limit=10,
-            bd_filter=True,
-            relevance_keywords=BD_RELEVANCE_KEYWORDS,
-        )
+            self.stdout.write("\n=== BANGLADESH NEWS ===")
+            self.process_feeds(
+                feeds=BD_FEEDS,
+                category="BD",
+                limit=10,
+                bd_filter=True,
+                relevance_keywords=BD_RELEVANCE_KEYWORDS,
+            )
+        finally:
+            self._close_playwright()
 
         self.stdout.write(f"\n[DONE] {timezone.now().strftime('%Y-%m-%d %H:%M')}")
 

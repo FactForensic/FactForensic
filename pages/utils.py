@@ -1,8 +1,35 @@
 import logging
+import time
+import re
+import threading
+import json
 from groq import Groq
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+
+# --------------------------------------------------------------------------- #
+# Simple rate-limiter: Groq free tier = 6000 TPM for llama-3.1-8b-instant.
+# Each request uses ~900-1200 tokens. Spacing calls 12s apart gives ~5/min,
+# comfortably under the limit even with the largest articles.
+# --------------------------------------------------------------------------- #
+_groq_lock = threading.Lock()
+_groq_last_call_time = 0.0
+_GROQ_MIN_INTERVAL = 12  # seconds between consecutive Groq calls
+
+
+def _groq_rate_limited_sleep():
+    """Ensure at least _GROQ_MIN_INTERVAL seconds between consecutive Groq calls."""
+    global _groq_last_call_time
+    with _groq_lock:
+        now = time.monotonic()
+        elapsed = now - _groq_last_call_time
+        if elapsed < _GROQ_MIN_INTERVAL:
+            sleep_for = _GROQ_MIN_INTERVAL - elapsed
+            logger.debug(f"Groq rate limiter: sleeping {sleep_for:.1f}s")
+            time.sleep(sleep_for)
+        _groq_last_call_time = time.monotonic()
 
 
 def get_groq_objectivity_score(text: str) -> int | None:
@@ -23,14 +50,14 @@ def get_groq_objectivity_score(text: str) -> int | None:
         "You are a senior media analyst who scores journalistic objectivity.\n"
         "You MUST return ONLY a valid JSON object containing a short 'reasoning' string and a 'score' (an integer from 0 to 100).\n\n"
         "Calibration reference points (use these to anchor your scoring):\n"
-        "  95 — AP or Reuters wire copy with zero editorializing\n"
-        "  88 — Straight news report with minor framing choices\n"
-        "  80 — News analysis with some interpretive language\n"
-        "  72 — Investigative piece with clear perspective\n"
-        "  60 — News with noticeable editorial slant\n"
-        "  45 — Strongly opinionated reporting\n"
-        "  30 — Editorial or opinion column\n"
-        "  15 — Propaganda or heavily one-sided polemic\n\n"
+        "  95 \u2014 AP or Reuters wire copy with zero editorializing\n"
+        "  88 \u2014 Straight news report with minor framing choices\n"
+        "  80 \u2014 News analysis with some interpretive language\n"
+        "  72 \u2014 Investigative piece with clear perspective\n"
+        "  60 \u2014 News with noticeable editorial slant\n"
+        "  45 \u2014 Strongly opinionated reporting\n"
+        "  30 \u2014 Editorial or opinion column\n"
+        "  15 \u2014 Propaganda or heavily one-sided polemic\n\n"
         "Score each article independently. Do NOT default to any single number.\n"
         "Even small differences in tone, sourcing, or balance should shift the score."
     )
@@ -58,8 +85,9 @@ def get_groq_objectivity_score(text: str) -> int | None:
 
     for attempt in range(1, 4):  # 3 attempts
         try:
-            client = Groq(api_key=api_key)
+            _groq_rate_limited_sleep()  # enforce spacing BEFORE every call
 
+            client = Groq(api_key=api_key)
             chat_completion = client.chat.completions.create(
                 messages=messages,
                 model="llama-3.1-8b-instant",
@@ -71,8 +99,6 @@ def get_groq_objectivity_score(text: str) -> int | None:
 
             response_content = chat_completion.choices[0].message.content.strip()
             logger.debug(f"[Groq raw response] attempt={attempt}: '{response_content}'")
-
-            import json
 
             try:
                 data = json.loads(response_content)
@@ -94,10 +120,12 @@ def get_groq_objectivity_score(text: str) -> int | None:
         except Exception as e:
             logger.error(f"Groq API error on attempt {attempt}/3: {e}")
             if attempt < 3:
-                import time
-
-                wait = 2**attempt  # 2s, 4s
-                logger.info(f"Retrying in {wait}s...")
+                # Read the exact wait time from the 429 error, add 2s buffer
+                wait = 2 ** attempt  # default fallback: 2s, 4s
+                match = re.search(r"Please try again in ([\d.]+)s", str(e))
+                if match:
+                    wait = float(match.group(1)) + 2
+                logger.info(f"Retrying in {wait:.1f}s...")
                 time.sleep(wait)
 
     logger.error("All 3 Groq attempts failed. Returning None.")

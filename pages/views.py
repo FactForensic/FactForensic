@@ -53,6 +53,10 @@ def breaking_news_api(request):
 
         client = genai.Client(api_key=api_key)
 
+        # gemini-2.5-flash is our primary model. 
+        # Note: gemini-2.0-flash has 0 quota for this project, so we ignore it.
+        _GEMINI_MODEL = "gemini-2.5-flash"
+
         prompt = """You are a real-time news intelligence assistant. Your task is to provide the TOP 3 most important and trending news stories RIGHT NOW for two categories.
 
 Return ONLY valid JSON with this exact structure (no markdown, no extra text):
@@ -91,10 +95,32 @@ STRICT RULES:
 - Focus only on geopolitical, economic, military, or humanitarian events
 - Prioritize events involving: war, elections, sanctions, diplomacy, natural disasters"""
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-        )
+        response = None
+        last_exc = None
+        
+        # Retry logic for the primary model (handling temporary 503/429 spikes)
+        for _attempt in range(3):
+            try:
+                response = client.models.generate_content(
+                    model=_GEMINI_MODEL,
+                    contents=prompt,
+                )
+                last_exc = None
+                break
+            except Exception as _e:
+                last_exc = _e
+                err_msg = str(_e).lower()
+                # If busy or rate limited, wait and retry
+                if "503" in err_msg or "unavailable" in err_msg or "429" in err_msg or "exhausted" in err_msg:
+                    time.sleep(5 * (_attempt + 1))
+                    continue
+                else:
+                    # For other errors (like 404 or auth), stop retrying
+                    break
+                    
+        if response is None:
+            raise last_exc
+            
         raw = response.text.strip() if response.text is not None else ""
 
         # Strip markdown code fences if present
@@ -113,15 +139,35 @@ STRICT RULES:
         _breaking_news_cache["data"] = data
         _breaking_news_cache["fetched_at"] = now
 
+        # --- NEW: Save to persistent file cache ---
+        try:
+            with open("breaking_news_cache.json", "w") as f:
+                json.dump(data, f)
+        except Exception as _fe:
+            print("Failed to write breaking news file cache:", _fe)
+
         return JsonResponse(data)
 
     except Exception as e:
-        # If cache has stale data, return it with a warning
+        # 1. Try in-memory stale cache first
         if _breaking_news_cache["data"]:
             stale = dict(_breaking_news_cache["data"])
             stale["stale"] = True
             stale["error_hint"] = str(e)
             return JsonResponse(stale)
+            
+        # 2. If memory is empty (after restart), try file cache
+        try:
+            import os
+            if os.path.exists("breaking_news_cache.json"):
+                with open("breaking_news_cache.json", "r") as f:
+                    file_data = json.load(f)
+                    file_data["stale"] = True
+                    file_data["error_hint"] = f"Live API failed: {str(e)}"
+                    return JsonResponse(file_data)
+        except Exception as _fe:
+            print("Failed to read breaking news file cache:", _fe)
+
         return JsonResponse(
             {"error": f"Failed to fetch breaking news: {str(e)}"}, status=500
         )
@@ -144,8 +190,16 @@ def get_hf_bias(text):
             return "Center"
     try:
         result = _hf_client.predict(text=text[:2000], api_name="/predict_bias")
-        bias_label = result.get("label", "Center")
-        return "Center" if bias_label == "Center / Neutral" else bias_label
+        # Ensure result is a dictionary and extract label
+        if isinstance(result, dict):
+            bias_label = result.get("label", "Center")
+            # Map variations of Neutral/Center to "Center"
+            if bias_label in ["Center / Neutral", "Neutral", "Center"]:
+                return "Center"
+            return bias_label
+        else:
+            print(f"Unexpected HF bias result format: {result}")
+            return "Center"
     except Exception as e:
         print("Error predicting bias:", e)
         return "Center"
@@ -317,10 +371,24 @@ def summarize_view(request, article_id):
             f"ARTICLE:\n{content[:8000]}"
         )
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-        )
+        response = None
+        for _attempt in range(3):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                )
+                break
+            except Exception as _e:
+                err_msg = str(_e).lower()
+                if "503" in err_msg or "unavailable" in err_msg or "429" in err_msg:
+                    time.sleep(5 * (_attempt + 1))
+                    continue
+                raise
+        
+        if not response:
+            return JsonResponse({"error": "AI service is currently busy. Try again."}, status=503)
+
         summary_text = response.text.strip() if response.text is not None else ""
 
         return JsonResponse({"summary": summary_text})
@@ -369,10 +437,24 @@ def summarize_text_view(request):
             f"ARTICLE:\n{content[:8000]}"
         )
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-        )
+        response = None
+        for _attempt in range(3):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                )
+                break
+            except Exception as _e:
+                err_msg = str(_e).lower()
+                if "503" in err_msg or "unavailable" in err_msg or "429" in err_msg:
+                    time.sleep(5 * (_attempt + 1))
+                    continue
+                raise
+
+        if not response:
+            return JsonResponse({"error": "AI service busy. Try again."}, status=503)
+
         summary_text = response.text.strip() if response.text is not None else ""
 
         return JsonResponse({"summary": summary_text})
