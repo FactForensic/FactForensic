@@ -132,6 +132,12 @@ STRICT RULES:
 
         data = json.loads(raw)
 
+        # Shuffle the arrays to avoid fixed patterns (e.g. Economy always No. 1)
+        if "bd" in data and isinstance(data["bd"], list):
+            random.shuffle(data["bd"])
+        if "international" in data and isinstance(data["international"], list):
+            random.shuffle(data["international"])
+
         # Add cache metadata
         data["is_peak_hour"] = _is_peak_hour_bd()
         data["refresh_in_minutes"] = 30 if _is_peak_hour_bd() else 60
@@ -192,10 +198,16 @@ def get_hf_bias(text):
         result = _hf_client.predict(text=text[:2000], api_name="/predict_bias")
         # Ensure result is a dictionary and extract label
         if isinstance(result, dict):
-            bias_label = result.get("label", "Center")
-            # Map variations of Neutral/Center to "Center"
-            if bias_label in ["Center / Neutral", "Neutral", "Center"]:
+            bias_label = str(result.get("label", "Center"))
+            
+            # Map raw model integer labels to strings if necessary
+            if bias_label in ["0", "LABEL_0", "Left"]:
+                return "Left"
+            elif bias_label in ["2", "LABEL_2", "Right"]:
+                return "Right"
+            elif bias_label in ["1", "LABEL_1", "Center", "Center / Neutral", "Neutral"]:
                 return "Center"
+                
             return bias_label
         else:
             print(f"Unexpected HF bias result format: {result}")
