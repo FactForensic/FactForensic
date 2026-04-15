@@ -227,28 +227,14 @@ def _assign_bias_and_obj(news_qs):
             else:
                 news.random_bias = "Center"
         else:
-            text_to_analyze = news.title + " " + (news.content or "")
-            bias_label = get_hf_bias(text_to_analyze)
-            news.random_bias = bias_label
-            if bias_label == "Left": 
-                news.bias_score = -1.0
-            elif bias_label == "Right": 
-                news.bias_score = 1.0
-            else: 
-                news.bias_score = 0.0
-            news.save(update_fields=['bias_score'])
+            # Don't call HF API on page load — it blocks the request thread.
+            # Bias is assigned during the fetch pipeline. Default to "Center".
+            news.random_bias = "Center"
 
         news.obj_score = getattr(news, "objectivity_score", None)
         if news.obj_score is None:
-            from pages.utils import get_groq_objectivity_score
-            text_for_obj = news.title + " " + (news.content or "")
-            fetched_obj = get_groq_objectivity_score(text_for_obj)
-            if fetched_obj is not None:
-                news.obj_score = fetched_obj
-                news.objectivity_score = fetched_obj
-                news.save(update_fields=['objectivity_score'])
-            else:
-                news.obj_score = random.randint(55, 98)
+            # Similarly, don't block page load for missing objectivity scores.
+            news.obj_score = random.randint(55, 98)
         
         news.score_class = (
             "score-high"
