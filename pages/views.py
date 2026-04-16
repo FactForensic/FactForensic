@@ -294,6 +294,12 @@ def analyze_view(request):
 
 
 @csrf_exempt
+def clear_db(request):
+    """Temporary endpoint to wipe the DB so we can test fresh scores."""
+    count, _ = GeopoliticalNews.objects.all().delete()
+    return JsonResponse({"status": "cleared", "deleted_count": count})
+
+@csrf_exempt
 def trigger_fetch(request):
     if request.method == "POST":
         thread = threading.Thread(target=call_command, args=("fetch",))
