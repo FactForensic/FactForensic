@@ -83,34 +83,32 @@ def get_groq_objectivity_score(text: str) -> int | None:
         return None
 
     system_msg = (
-        "You are a senior media analyst who scores journalistic objectivity.\n"
-        "You MUST return ONLY a valid JSON object containing a short 'reasoning' string and a 'score' (an integer from 0 to 100).\n\n"
-        "Calibration reference points (use these to anchor your scoring):\n"
-        "  95 \u2014 AP or Reuters wire copy with zero editorializing\n"
-        "  88 \u2014 Straight news report with minor framing choices\n"
-        "  80 \u2014 News analysis with some interpretive language\n"
-        "  72 \u2014 Investigative piece with clear perspective\n"
-        "  60 \u2014 News with noticeable editorial slant\n"
-        "  45 \u2014 Strongly opinionated reporting\n"
-        "  30 \u2014 Editorial or opinion column\n"
-        "  15 \u2014 Propaganda or heavily one-sided polemic\n\n"
-        "Score each article independently. Do NOT default to any single number.\n"
-        "Even small differences in tone, sourcing, or balance should shift the score."
+        "You are an elite journalistic integrity algorithm.\n"
+        "Your task is to calculate a precise Objectivity Score (0-100) using a strict mathematical framework.\n"
+        "You MUST return ONLY a valid JSON object: {\"reasoning\": \"brief thought\", \"score\": <integer>}\n\n"
+        "SCORING FRAMEWORK:\n"
+        "Evaluate the text across these 5 criteria. Start each at 20 points and deduct points for flaws:\n"
+        "1. Emotion & Tone (20 pts): Deduct 2-8 points for loaded adjectives. Deduct 10+ for outrage/sensationalism.\n"
+        "2. Perspective Balance (20 pts): Deduct 3-7 points if one side is slightly ignored. Deduct 10+ if heavily one-sided.\n"
+        "3. Fact vs Opinion (20 pts): Deduct points for unverified claims or 'experts say' without names.\n"
+        "4. Sourcing Quality (20 pts): Deduct if citing biased/anonymous sources over primary data.\n"
+        "5. Headline/Framing (20 pts): Deduct if the headline is clickbait or the framing is highly leading.\n\n"
+        "RULES:\n"
+        "- The 'score' is the SUM of the 5 criteria.\n"
+        "- NEVER output generic numbers like 85, 88, 90, 95, or 100.\n"
+        "- Produce exact, mathematically calculated odd and even integers (e.g., 73, 86, 91, 57).\n"
+        "- Be harsh. True 90+ articles are extremely rare, purely factual wires."
     )
 
     # Truncate cleanly at sentence boundary
     truncated_text = _truncate_at_sentence(text, max_chars=6000)
 
     user_msg = (
-        "Evaluate the objectivity of this article across five dimensions:\n"
-        "1. Emotional Language Intensity (0=neutral, 20=highly emotional)\n"
-        "2. Opinion vs Fact Ratio (0=purely factual, 20=mostly opinion)\n"
-        "3. Balance of Viewpoints (0=balanced, 20=one-sided)\n"
-        "4. Use of Verifiable Evidence (0=strong sourcing, 20=weak sourcing)\n"
-        "5. Sensationalism (0=none, 20=extreme)\n\n"
-        "Objectivity = 100 minus total subjectivity points.\n"
-        "Return ONLY the final JSON object in this exact format. Keep reasoning under 10 words:\n"
-        '{"reasoning": "short internal thought", "score": 85}\n\n'
+        "Analyze the following article using the 5 criteria framework.\n"
+        "Internally calculate the score for each of the 5 criteria (max 20 each).\n"
+        "Sum them up to get the final score.\n"
+        "Return ONLY a JSON object in this exact format. Do NOT wrap in markdown:\n"
+        '{"reasoning": "c1=18, c2=15, c3=19... [short thought]", "score": <final_sum>}\n\n'
         f"ARTICLE:\n{truncated_text}"
     )
 
