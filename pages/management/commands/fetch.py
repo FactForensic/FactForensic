@@ -535,8 +535,7 @@ class Command(BaseCommand):
             self.stdout.write(f"  |- [OK] Scraped ({len(body):,} chars)")
 
             # Get objectivity score from Groq
-            from pages.utils import get_groq_objectivity_score
-            from pages.views import get_hf_bias
+            from pages.utils import get_groq_objectivity_score, get_hf_bias
 
             obj_score = get_groq_objectivity_score(body)
             self.stdout.write(f"  |- [GROQ] Objectivity score: {obj_score}")

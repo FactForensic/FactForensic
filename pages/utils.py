@@ -10,6 +10,42 @@ logger = logging.getLogger(__name__)
 
 
 # --------------------------------------------------------------------------- #
+# HF Bias Detection
+# --------------------------------------------------------------------------- #
+_hf_client = None
+
+
+def get_hf_bias(text: str) -> str:
+    """
+    Get political bias label from HF model (detre/bias_detection).
+    Returns 'Left', 'Center', or 'Right'. Falls back to 'Center' on any error.
+    """
+    global _hf_client
+    if _hf_client is None:
+        try:
+            from gradio_client import Client
+            _hf_client = Client("detre/bias_detection", verbose=False)
+        except Exception as e:
+            logger.error(f"Error initializing HF client: {e}")
+            return "Center"
+    try:
+        result = _hf_client.predict(text=text[:2000], api_name="/predict_bias")
+        if isinstance(result, dict):
+            bias_label = str(result.get("label", "Center"))
+            if bias_label in ["0", "LABEL_0", "Left"]:
+                return "Left"
+            elif bias_label in ["2", "LABEL_2", "Right"]:
+                return "Right"
+            else:
+                return "Center"
+        logger.warning(f"Unexpected HF bias result format: {result}")
+        return "Center"
+    except Exception as e:
+        logger.error(f"Error predicting bias: {e}")
+        return "Center"
+
+
+# --------------------------------------------------------------------------- #
 # Simple rate-limiter: Groq free tier = 6000 TPM for llama-3.1-8b-instant.
 # Each request uses ~900-1200 tokens. Spacing calls 12s apart gives ~5/min,
 # comfortably under the limit even with the largest articles.

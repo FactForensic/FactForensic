@@ -10,6 +10,7 @@ import time
 import datetime
 
 from .models import GeopoliticalNews
+from pages.utils import get_hf_bias
 
 # -- Breaking News Cache -------------------------------------------------------
 _breaking_news_cache = {
@@ -179,42 +180,7 @@ STRICT RULES:
         )
 
 
-_hf_client = None
 
-def get_hf_bias(text):
-    """
-    Helper function to get bias from HF model. 
-    Loads the client lazily once.
-    """
-    global _hf_client
-    if _hf_client is None:
-        try:
-            from gradio_client import Client
-            _hf_client = Client("detre/bias_detection", verbose=False)
-        except Exception as e:
-            print("Error initializing HF client:", e)
-            return "Center"
-    try:
-        result = _hf_client.predict(text=text[:2000], api_name="/predict_bias")
-        # Ensure result is a dictionary and extract label
-        if isinstance(result, dict):
-            bias_label = str(result.get("label", "Center"))
-            
-            # Map raw model integer labels to strings if necessary
-            if bias_label in ["0", "LABEL_0", "Left"]:
-                return "Left"
-            elif bias_label in ["2", "LABEL_2", "Right"]:
-                return "Right"
-            elif bias_label in ["1", "LABEL_1", "Center", "Center / Neutral", "Neutral"]:
-                return "Center"
-                
-            return bias_label
-        else:
-            print(f"Unexpected HF bias result format: {result}")
-            return "Center"
-    except Exception as e:
-        print("Error predicting bias:", e)
-        return "Center"
 
 def _assign_bias_and_obj(news_qs):
     news_list = []
