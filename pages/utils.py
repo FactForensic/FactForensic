@@ -127,7 +127,7 @@ def get_groq_objectivity_score(text: str) -> int | None:
                 model="llama-3.1-8b-instant",
                 temperature=0.0,
                 top_p=1,
-                max_tokens=60,
+                max_tokens=180,
                 response_format={"type": "json_object"},
             )
 
