@@ -25,5 +25,5 @@ Check news by yourself using links or raw news:
 - python
 - Django
 - postgresql
-- Scikit-Learn / PyTorch / TensorFlow
+- Scikit-Learn / PyTorch
 - Google 2.5 flash/llama-3.1-8b-instant 
