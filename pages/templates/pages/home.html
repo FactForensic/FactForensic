@@ -10,82 +10,32 @@
 <section class="breaking-section" id="breaking-section">
 
     <!-- Section Header Banner -->
-    <div class="breaking-banner">
-        <div class="breaking-live-indicator">
-            <span class="live-dot"></span>
-            <span class="live-text">LIVE</span>
+    <div class="innovative-banner-container">
+        <div class="banner-divider banner-divider--left"></div>
+        <div class="innovative-badge">
+            <div class="badge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+            </div>
+            <span class="badge-text-main">Breaking</span>
+            <span class="badge-text-sub">News</span>
         </div>
-        <h2 class="breaking-title">Breaking News</h2>
-
-        <div class="breaking-meta-right">
-            <span class="breaking-refresh-label" id="breaking-refresh-label">Refreshing…</span>
-            <div class="breaking-timestamp" id="breaking-clock"></div>
-        </div>
+        <div class="banner-divider banner-divider--right"></div>
     </div>
 
-    <!-- Grid: BD | International -->
-    <div class="breaking-grid">
-
-        <!-- ── International Column ── -->
-        <div class="bn-column bn-column--world">
-            <div class="bn-col-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="2" y1="12" x2="22" y2="12" />
-                    <path
-                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                </svg>
-                <span>International</span>
-                <span class="bn-col-badge bn-col-badge--world">Top 3</span>
-            </div>
-            <div class="bn-carousel-wrap" id="world-carousel-wrap">
-                <div class="bn-loading" id="world-loading">
-                    <div class="bn-spinner"></div>
-                    <span>Fetching…</span>
-                </div>
-                <div class="bn-slides" id="world-slides"></div>
-            </div>
-            <div class="bn-controls" id="world-controls">
-                <div class="bn-dots" id="world-dots"></div>
-                <span class="bn-pause-badge" id="world-pause-badge" style="display:none;">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                        <rect x="6" y="4" width="4" height="16" />
-                        <rect x="14" y="4" width="4" height="16" />
-                    </svg>
-                    Paused
-                </span>
-            </div>
+    <!-- Split Command Center: BD | International -->
+    <div class="cmd-container" id="cmd-container">
+        <div class="bn-loading" id="cmd-loading" style="min-height: 350px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="bn-spinner"></div>
+            <span style="margin-top:1rem; color:#64748b; font-weight: 500;">Gathering Data...</span>
         </div>
-
-        <!-- ── Bangladesh Column ── -->
-        <div class="bn-column bn-column--bd">
-            <div class="bn-col-header">
-                <img src="https://flagcdn.com/w40/bd.png" width="20" alt="BD" style="border-radius:3px;">
-                <span>Bangladesh</span>
-                <span class="bn-col-badge">Top 3</span>
-            </div>
-            <!-- Carousel viewport -->
-            <div class="bn-carousel-wrap" id="bd-carousel-wrap">
-                <div class="bn-loading" id="bd-loading">
-                    <div class="bn-spinner"></div>
-                    <span>Fetching…</span>
-                </div>
-                <div class="bn-slides" id="bd-slides"></div>
-            </div>
-            <!-- Dot indicators & pause badge -->
-            <div class="bn-controls" id="bd-controls">
-                <div class="bn-dots" id="bd-dots"></div>
-                <span class="bn-pause-badge" id="bd-pause-badge" style="display:none;">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                        <rect x="6" y="4" width="4" height="16" />
-                        <rect x="14" y="4" width="4" height="16" />
-                    </svg>
-                    Paused
-                </span>
-            </div>
+        
+        <div class="command-center" id="command-center" style="display: none;">
+            <div class="cmd-half cmd-half--bd" id="cmd-bd-container"></div>
+            <div class="cmd-half cmd-half--intl" id="cmd-intl-container"></div>
         </div>
-
-    </div><!-- /breaking-grid -->
+    </div><!-- /cmd-container -->
 </section>
 
 <!-- Breaking News Styles -->
@@ -98,225 +48,215 @@
     }
 
     /* ── BANNER HEADER ── */
-    .breaking-banner {
+    .innovative-banner-container {
         display: flex;
         align-items: center;
-        gap: 1.2rem;
-        padding: 1rem 1.8rem;
-        margin-bottom: 1.5rem;
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.05) 60%, transparent 100%);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        border-radius: 16px;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        padding-top: 1rem;
+    }
+
+    .innovative-badge {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03), inset 0 2px 4px rgba(255, 255, 255, 1);
+        padding: 0.5rem 1.25rem 0.5rem 0.5rem;
+        border-radius: 99px;
         position: relative;
         overflow: hidden;
     }
 
-    .breaking-banner::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(ellipse at top left, rgba(239, 68, 68, 0.08), transparent 70%);
-        pointer-events: none;
-    }
-
-    .breaking-banner::after {
+    /* Subtle shimmer effect */
+    .innovative-badge::after {
         content: '';
         position: absolute;
         top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #ef4444, #f97316, #ef4444);
-        background-size: 200% 100%;
-        animation: gradientShift 3s ease infinite;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+        transform: skewX(-20deg);
+        animation: badgeShimmer 6s infinite;
     }
 
-    @keyframes gradientShift {
-        0% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-
-        100% {
-            background-position: 0% 50%;
-        }
+    @keyframes badgeShimmer {
+        0% { left: -100%; }
+        15% { left: 200%; }
+        100% { left: 200%; }
     }
 
-    .breaking-live-indicator {
+    .badge-icon {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        flex-shrink: 0;
-    }
-
-    .live-dot {
-        width: 10px;
-        height: 10px;
-        background: #ef4444;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
         border-radius: 50%;
-        position: relative;
-        flex-shrink: 0;
+        color: white;
+        margin-right: 0.8rem;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
     }
 
-    .live-dot::before {
-        content: '';
-        position: absolute;
-        inset: -4px;
-        border-radius: 50%;
-        border: 2px solid rgba(239, 68, 68, 0.5);
-        animation: livePulse 1.4s ease-out infinite;
+    .badge-icon svg {
+        width: 16px;
+        height: 16px;
     }
 
-    @keyframes livePulse {
-        0% {
-            transform: scale(0.8);
-            opacity: 1;
-        }
-
-        100% {
-            transform: scale(1.8);
-            opacity: 0;
-        }
-    }
-
-    .live-text {
-        font-size: 0.72rem;
+    .badge-text-main {
         font-weight: 800;
-        letter-spacing: 0.12em;
-        color: #ef4444;
-        background: rgba(239, 68, 68, 0.15);
-        border: 1px solid rgba(239, 68, 68, 0.35);
-        padding: 0.2rem 0.55rem;
-        border-radius: 99px;
-    }
-
-    .breaking-title {
-        font-size: 1.4rem;
-        font-weight: 800;
+        font-size: 1.15rem;
         color: #0f172a;
         letter-spacing: -0.02em;
+        text-transform: uppercase;
+        margin-right: 0.3rem;
     }
 
-    .breaking-subtitle {
-        font-size: 0.85rem;
+    .badge-text-sub {
+        font-weight: 300;
+        font-size: 1.15rem;
         color: #64748b;
-        flex: 1;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
     }
 
-    .breaking-meta-right {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 0.2rem;
-        margin-left: auto;
-        flex-shrink: 0;
+    .banner-divider {
+        flex-grow: 1;
+        height: 1px;
     }
 
-    .breaking-refresh-label {
-        font-size: 0.72rem;
-        color: #475569;
-        white-space: nowrap;
+    .banner-divider--left {
+        background: linear-gradient(270deg, rgba(226, 232, 240, 1), rgba(226, 232, 240, 0));
     }
 
-    .breaking-timestamp {
-        font-size: 0.8rem;
-        color: #475569;
-        font-variant-numeric: tabular-nums;
+    .banner-divider--right {
+        background: linear-gradient(90deg, rgba(226, 232, 240, 1), rgba(226, 232, 240, 0));
     }
 
-    /* ── BREAKING GRID ── */
-    .breaking-grid {
+    /* ── SPLIT COMMAND CENTER ── */
+    .command-center {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1.5rem;
+        gap: 2rem;
+        margin-top: 1rem;
     }
 
-    /* ── COLUMN ── */
-    .bn-column {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
+    @media (max-width: 1024px) {
+        .command-center {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .cmd-half {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 1.25rem;
+        padding: 1.5rem;
         border-radius: 20px;
-        overflow: hidden;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    }
+
+    .cmd-half--bd { border-top: 4px solid #16a34a; }
+    .cmd-half--intl { border-top: 4px solid #4f46e5; }
+
+    /* ── COMMAND PANELS ── */
+    .cmd-panel {
+        border-radius: 12px;
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         display: flex;
         flex-direction: column;
-        min-height: 320px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        padding: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
 
-    .bn-column--bd {
-        border-color: rgba(34, 197, 94, 0.3);
+    .cmd-panel:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+        border-color: #cbd5e1;
     }
 
-    .bn-column--world {
-        border-color: rgba(99, 102, 241, 0.3);
+    .cmd-panel--top {
+        grid-column: 1 / 3;
     }
 
-    /* col header */
-    .bn-col-header {
+    .cmd-panel--sub {
+        grid-row: 2;
+    }
+
+    /* Content styling */
+    .cmd-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .cmd-cat {
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.25rem 0.6rem;
+        border-radius: 99px;
+        margin-bottom: 0.75rem;
+        display: inline-block;
+        align-self: flex-start;
+    }
+
+    .cmd-cat--bd { background: rgba(22, 163, 74, 0.15); color: #16a34a; }
+    .cmd-cat--intl { background: rgba(79, 70, 229, 0.15); color: #4f46e5; }
+
+    .cmd-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.4;
+        margin: 0 0 0.5rem 0;
+        color: #0f172a;
+    }
+
+    .cmd-panel--top .cmd-title {
+        font-size: 1.4rem;
+    }
+
+    .cmd-summary {
+        font-size: 0.9rem;
+        color: #475569;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .cmd-source {
+        margin-top: auto;
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 0.6rem;
-        padding: 0.85rem 1.4rem;
-        border-bottom: 1px solid #e2e8f0;
-        font-size: 0.82rem;
-        font-weight: 700;
-        color: #334155;
-        letter-spacing: 0.03em;
+        gap: 0.4rem;
     }
 
-    .bn-column--bd .bn-col-header {
-        color: #16a34a;
-    }
-
-    .bn-column--world .bn-col-header {
-        color: #6366f1;
-    }
-
-    .bn-col-badge {
-        margin-left: auto;
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: #4ade80;
-        background: rgba(74, 222, 128, 0.12);
-        border: 1px solid rgba(74, 222, 128, 0.25);
-        padding: 0.18rem 0.6rem;
-        border-radius: 99px;
-    }
-
-    .bn-col-badge--world {
-        color: #818cf8;
-        background: rgba(99, 102, 241, 0.12);
-        border-color: rgba(99, 102, 241, 0.25);
-    }
-
-    /* ── CAROUSEL WRAP ── */
-    .bn-carousel-wrap {
-        flex: 1;
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* ── LOADING STATE ── */
+    /* ── LOADING SPINNER (Shared) ── */
     .bn-loading {
-        position: absolute;
-        inset: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 0.85rem;
+        gap: 1rem;
         color: #64748b;
-        font-size: 0.88rem;
+        font-size: 0.95rem;
+        font-weight: 500;
     }
 
     .bn-spinner {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         border: 3px solid #e2e8f0;
         border-top-color: #6366f1;
@@ -324,180 +264,8 @@
     }
 
     @keyframes bn-spin {
-        to {
-            transform: rotate(360deg);
-        }
+        to { transform: rotate(360deg); }
     }
-
-    /* ── SLIDES ── */
-    .bn-slides {
-        width: 100%;
-        display: flex;
-        transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
-        will-change: transform;
-    }
-
-    /* single slide */
-    .bn-slide {
-        min-width: 100%;
-        padding: 1.4rem;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        gap: 0.85rem;
-    }
-
-    /* slide number badge */
-    .bn-slide-num {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        margin-bottom: 0.1rem;
-    }
-
-    .bn-column--bd .bn-slide-num {
-        color: #4ade80;
-    }
-
-    .bn-column--world .bn-slide-num {
-        color: #818cf8;
-    }
-
-    .bn-slide-cat {
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #4ade80;
-        background: rgba(74, 222, 128, 0.1);
-        border: 1px solid rgba(74, 222, 128, 0.2);
-        padding: 0.15rem 0.55rem;
-        border-radius: 99px;
-        margin-left: auto;
-    }
-
-    .bn-column--world .bn-slide-cat {
-        color: #818cf8;
-        background: rgba(99, 102, 241, 0.1);
-        border-color: rgba(99, 102, 241, 0.2);
-    }
-
-    .bn-slide-headline {
-        font-size: 1.12rem;
-        font-weight: 700;
-        color: #0f172a;
-        line-height: 1.48;
-        margin: 0;
-    }
-
-    .bn-slide-summary {
-        font-size: 0.90rem;
-        line-height: 1.72;
-        color: #475569;
-        flex: 1;
-    }
-
-    .bn-slide-source {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.76rem;
-        color: #64748b;
-        font-weight: 600;
-        padding-top: 0.6rem;
-        border-top: 1px solid #e2e8f0;
-    }
-
-    .bn-slide-source::before {
-        content: '';
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #4ade80;
-        flex-shrink: 0;
-    }
-
-    .bn-column--world .bn-slide-source::before {
-        background: #818cf8;
-    }
-
-    /* ── CONTROLS ── */
-    .bn-controls {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 0.8rem;
-        padding: 0.6rem 1.2rem 0.8rem;
-        border-top: 1px solid #e2e8f0;
-    }
-
-    /* dot indicators */
-    .bn-dots {
-        display: flex;
-        align-items: center;
-        gap: 0.45rem;
-    }
-
-    .bn-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #cbd5e1;
-        cursor: pointer;
-        border: none;
-        padding: 0;
-        transition: all 0.25s ease;
-    }
-
-    .bn-dot:hover {
-        background: #94a3b8;
-        transform: scale(1.15);
-    }
-
-    .bn-dot.active {
-        width: 22px;
-        border-radius: 99px;
-        background: #4ade80;
-    }
-
-    .bn-column--world .bn-dot.active {
-        background: #818cf8;
-    }
-
-    /* pause badge */
-    .bn-pause-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #f59e0b;
-        background: rgba(245, 158, 11, 0.12);
-        border: 1px solid rgba(245, 158, 11, 0.3);
-        padding: 0.2rem 0.6rem;
-        border-radius: 99px;
-    }
-
-    /* error state */
-    .bn-error {
-        padding: 2rem 1.4rem;
-        text-align: center;
-        color: #f87171;
-        font-size: 0.88rem;
-        line-height: 1.6;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-        .breaking-grid {
-            grid-template-columns: 1fr;
-        }
 
         .breaking-banner {
             flex-wrap: wrap;
@@ -506,117 +274,15 @@
     }
 </style>
 
-<!-- Live Clock Script -->
-<script>
-    (function () {
-        const el = document.getElementById('breaking-clock');
-        function tick() {
-            const now = new Date();
-            el.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }
-        tick();
-        setInterval(tick, 1000);
-    })();
-</script>
+<!-- Live Clock Script Removed -->
 
-<!-- ── Gemini Breaking News Carousel Engine ── -->
+<!-- ── Gemini Breaking News Command Engine ── -->
 <script>
     (function () {
         'use strict';
 
-        /* ── helpers ── */
-        function el(id) { return document.getElementById(id); }
-
-        /* ── carousel state ── */
-        function makeCarousel(cfg) {
-            // cfg: { slidesEl, dotsEl, pauseBadgeEl, wrapEl, loadingEl, accentClass }
-            let current = 0;
-            let paused = false;
-            let items = [];
-            let timer = null;
-
-            function goTo(idx) {
-                current = idx;
-                cfg.slidesEl.style.transform = `translateX(-${current * 100}%)`;
-                cfg.dotsEl.querySelectorAll('.bn-dot').forEach(function (d, i) {
-                    d.classList.toggle('active', i === current);
-                });
-            }
-
-            function next() {
-                if (!paused && items.length > 1) {
-                    goTo((current + 1) % items.length);
-                }
-            }
-
-            function startAuto() {
-                clearInterval(timer);
-                timer = setInterval(next, 6000);
-            }
-
-            function stopAuto() {
-                clearInterval(timer);
-            }
-
-            function setPaused(val) {
-                paused = val;
-                cfg.pauseBadgeEl.style.display = val ? 'inline-flex' : 'none';
-                if (val) { stopAuto(); } else { startAuto(); }
-            }
-
-            function render(newsArray) {
-                items = newsArray;
-                cfg.loadingEl.style.display = 'none';
-                cfg.slidesEl.innerHTML = '';
-                cfg.dotsEl.innerHTML = '';
-
-                newsArray.forEach(function (item, i) {
-                    // Slide
-                    const slide = document.createElement('div');
-                    slide.className = 'bn-slide';
-                    slide.innerHTML =
-                        '<div class="bn-slide-num">' +
-                        '<span>No. ' + (i + 1) + '</span>' +
-                        '<span class="bn-slide-cat">' + escapeHtml(item.category || '') + '</span>' +
-                        '</div>' +
-                        '<h3 class="bn-slide-headline">' + escapeHtml(item.title) + '</h3>' +
-                        '<p class="bn-slide-summary">' + escapeHtml(item.summary) + '</p>' +
-                        '<div class="bn-slide-source">' + escapeHtml(item.source || 'Unknown Source') + '</div>';
-
-                    // Pause/resume on click
-                    slide.addEventListener('click', function () {
-                        setPaused(!paused);
-                    });
-                    slide.style.cursor = 'pointer';
-                    slide.title = paused ? 'Click to resume' : 'Click to pause';
-
-                    cfg.slidesEl.appendChild(slide);
-
-                    // Dot
-                    const dot = document.createElement('button');
-                    dot.className = 'bn-dot' + (i === 0 ? ' active' : '');
-                    dot.setAttribute('aria-label', 'News ' + (i + 1));
-                    dot.addEventListener('click', function (e) {
-                        e.stopPropagation();
-                        goTo(i);
-                        setPaused(true);
-                    });
-                    cfg.dotsEl.appendChild(dot);
-                });
-
-                goTo(0);
-                startAuto();
-            }
-
-            function showError(msg) {
-                cfg.loadingEl.style.display = 'none';
-                cfg.slidesEl.innerHTML = '<div class="bn-error">⚠ ' + escapeHtml(msg) + '</div>';
-            }
-
-            return { render, showError };
-        }
-
         function escapeHtml(str) {
+            if (!str) return '';
             return String(str)
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
@@ -624,22 +290,47 @@
                 .replace(/"/g, '&quot;');
         }
 
-        /* ── Init carousels ── */
-        const bdCarousel = makeCarousel({
-            slidesEl: el('bd-slides'),
-            dotsEl: el('bd-dots'),
-            pauseBadgeEl: el('bd-pause-badge'),
-            loadingEl: el('bd-loading'),
-        });
+        function renderCommandCenter(data) {
+            const cmdCenter = document.getElementById('command-center');
+            const loading = document.getElementById('cmd-loading');
+            
+            if (loading) loading.style.display = 'none';
+            if (cmdCenter) cmdCenter.style.display = 'grid';
 
-        const worldCarousel = makeCarousel({
-            slidesEl: el('world-slides'),
-            dotsEl: el('world-dots'),
-            pauseBadgeEl: el('world-pause-badge'),
-            loadingEl: el('world-loading'),
-        });
+            const bdContainer = document.getElementById('cmd-bd-container');
+            const intlContainer = document.getElementById('cmd-intl-container');
+            if (bdContainer) bdContainer.innerHTML = '';
+            if (intlContainer) intlContainer.innerHTML = '';
 
-        /* ── Fetch from API ── */
+            const createPanel = (item, isLarge, isBd, index, container) => {
+                const panel = document.createElement('div');
+                panel.className = 'cmd-panel' + (isLarge ? ' cmd-panel--top' : ' cmd-panel--sub');
+                
+                const catClass = isBd ? 'cmd-cat--bd' : 'cmd-cat--intl';
+
+                panel.innerHTML = `
+                    <div class="cmd-content">
+                        <span class="cmd-cat ${catClass}">${escapeHtml(item.category)}</span>
+                        <h3 class="cmd-title">${escapeHtml(item.title)}</h3>
+                        <p class="cmd-summary">${escapeHtml(item.summary)}</p>
+                        <div class="cmd-source">${escapeHtml(item.source || 'Unknown')}</div>
+                    </div>
+                `;
+                
+                if (container) container.appendChild(panel);
+            };
+
+            // Render BD News
+            if (data.bd && data.bd.length) {
+                data.bd.slice(0, 3).forEach((item, i) => createPanel(item, i === 0, true, i, bdContainer));
+            }
+            
+            // Render Intl News
+            if (data.international && data.international.length) {
+                data.international.slice(0, 3).forEach((item, i) => createPanel(item, i === 0, false, i, intlContainer));
+            }
+        }
+
         var refreshTimer = null;
         var countdownTimer = null;
         var nextRefreshTime = 0;
@@ -653,7 +344,6 @@
                 label.textContent = 'Refreshing now...';
                 return;
             }
-
             var min = Math.ceil(diff / 60000);
             label.textContent = 'Next refresh in ' + min + ' min';
         }
@@ -668,7 +358,7 @@
             updateCountdownLabel();
 
             refreshTimer = setTimeout(fetchBreakingNews, ms);
-            countdownTimer = setInterval(updateCountdownLabel, 30000); // refresh UI every 30s
+            countdownTimer = setInterval(updateCountdownLabel, 30000);
         }
 
         function fetchBreakingNews() {
@@ -679,24 +369,13 @@
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     if (data.error) {
-                        bdCarousel.showError(data.error);
-                        worldCarousel.showError(data.error);
+                        const loading = document.getElementById('cmd-loading');
+                        if (loading) loading.innerHTML = `<div style="color:#ef4444; font-weight: 500;">⚠ ${escapeHtml(data.error)}</div>`;
                         return;
                     }
 
-                    if (Array.isArray(data.bd) && data.bd.length) {
-                        bdCarousel.render(data.bd);
-                    } else {
-                        bdCarousel.showError('No Bangladesh news available right now.');
-                    }
+                    renderCommandCenter(data);
 
-                    if (Array.isArray(data.international) && data.international.length) {
-                        worldCarousel.render(data.international);
-                    } else {
-                        worldCarousel.showError('No international news available right now.');
-                    }
-
-                    // Update banner timestamp
                     if (data.fetched_at_bst) {
                         var label2 = document.getElementById('breaking-refresh-label');
                         if (label2) label2.textContent = 'Updated at ' + data.fetched_at_bst + (data.stale ? ' (cached)' : '');
@@ -705,9 +384,9 @@
                     scheduleRefresh(data.refresh_in_minutes || 60);
                 })
                 .catch(function (err) {
-                    bdCarousel.showError('Connection error. Retrying soon…');
-                    worldCarousel.showError('Connection error. Retrying soon…');
-                    scheduleRefresh(5); // retry faster on failure
+                    const loading = document.getElementById('cmd-loading');
+                    if (loading) loading.innerHTML = `<div style="color:#ef4444; font-weight: 500;">⚠ Connection error. Retrying soon…</div>`;
+                    scheduleRefresh(5);
                 });
         }
 
