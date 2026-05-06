@@ -17,27 +17,32 @@ _hf_client = None
 
 def get_hf_bias(text: str) -> str:
     """
-    Get political bias label from HF model (detre/bias_detection).
+    Get political bias label from HF model (detre/XLM-RoBERTa).
     Returns 'Left', 'Center', or 'Right'. Falls back to 'Center' on any error.
     """
     global _hf_client
     if _hf_client is None:
         try:
             from gradio_client import Client
-            _hf_client = Client("detre/bias_detection", verbose=False)
+            _hf_client = Client("detre/XLM-RoBERTa", verbose=False)
         except Exception as e:
             logger.error(f"Error initializing HF client: {e}")
             return "Center"
     try:
-        result = _hf_client.predict(text=text[:2000], api_name="/predict_bias")
-        if isinstance(result, dict):
-            bias_label = str(result.get("label", "Center"))
-            if bias_label in ["0", "LABEL_0", "Left"]:
-                return "Left"
-            elif bias_label in ["2", "LABEL_2", "Right"]:
-                return "Right"
-            else:
-                return "Center"
+        result = _hf_client.predict(text=text[:4000], api_name="/classify")
+        # Result is a tuple where the first element is the confidence dict
+        if isinstance(result, (list, tuple)) and len(result) > 0:
+            label_dict = result[0]
+            if isinstance(label_dict, dict):
+                bias_label = str(label_dict.get("label", "Center"))
+                if bias_label in ["Left", "Center", "Right"]:
+                    return bias_label
+                if bias_label in ["0", "LABEL_0"]:
+                    return "Left"
+                elif bias_label in ["2", "LABEL_2"]:
+                    return "Right"
+                else:
+                    return "Center"
         logger.warning(f"Unexpected HF bias result format: {result}")
         return "Center"
     except Exception as e:
